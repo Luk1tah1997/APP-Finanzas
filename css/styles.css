@@ -1,0 +1,237 @@
+/* ===================== */
+/*   Estilos generales   */
+/* ===================== */
+
+body {
+  background-color: #f5f5f5;
+}
+
+main {
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.section {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+/* Botones principales (si en algún momento se vuelven a usar) */
+.btn-full-width {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.label-radio {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #616161;
+}
+
+/* Tabla horizontal en mobile */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+/* Resumen: números más grandes */
+#section-resumen .card-content p {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+/* Colores de resumen en modo claro */
+.resumen-card.card-ingresos {
+  background-color: #e8f5e9;
+}
+
+.resumen-card.card-gastos {
+  background-color: #ffebee;
+}
+
+.resumen-card.card-balance {
+  background-color: #e3f2fd;
+}
+
+/* Acciones apiladas verticalmente en la tabla */
+.actions-cell .btn-small {
+  display: block;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.actions-cell .btn-small:last-child {
+  margin-bottom: 0;
+}
+
+/* Card de filtros un poco más pegada al título */
+#section-filtros .card {
+  margin-top: 0.5rem;
+}
+
+@media only screen and (max-width: 600px) {
+  .card .card-title {
+    font-size: 1.2rem;
+  }
+
+  #section-resumen .card-content p {
+    font-size: 1.2rem;
+  }
+}
+
+/* ===================== */
+/*       Sidenav         */
+/* ===================== */
+
+/* Que el li crezca con el contenido */
+.sidenav li {
+  height: auto;
+}
+
+/* Ítems con varias líneas sin romper el layout */
+.sidenav li > a {
+  display: flex;
+  align-items: center;
+  height: auto !important;       /* pisamos alto fijo de Materialize */
+  line-height: 1.4 !important;   /* línea normal */
+  padding: 12px 16px;
+  white-space: normal;           /* permitir salto de línea */
+}
+
+/* Separar icono del texto */
+.sidenav li > a i.material-icons {
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+/* ===================== */
+/*        Dark mode      */
+/* ===================== */
+
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode main {
+  background-color: #121212;
+}
+
+/* Navbar */
+body.dark-mode nav {
+  background-color: #212121 !important;
+}
+
+body.dark-mode nav .brand-logo,
+body.dark-mode nav a {
+  color: #ffffff !important;
+}
+
+/* Sidenav */
+body.dark-mode .sidenav {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidenav a {
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidenav .divider {
+  background-color: #333333;
+}
+
+/* Cards y contenedores */
+body.dark-mode .card {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0;
+}
+
+/* Resumen en oscuro: neutro */
+body.dark-mode .resumen-card.card-ingresos,
+body.dark-mode .resumen-card.card-gastos,
+body.dark-mode .resumen-card.card-balance {
+  background-color: #1f1f1f !important;
+}
+
+/* Tabla */
+body.dark-mode table {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode thead {
+  background-color: #212121;
+}
+
+body.dark-mode th,
+body.dark-mode td {
+  border-color: #333333;
+}
+
+body.dark-mode table.highlight > tbody > tr:hover {
+  background-color: #242424;
+}
+
+/* Collections (modal eliminar) */
+body.dark-mode .collection-item {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+/* Modal */
+body.dark-mode .modal {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode .modal .modal-footer {
+  background-color: #181818;
+}
+
+/* Inputs y labels */
+body.dark-mode .input-field input,
+body.dark-mode .input-field textarea {
+  color: #e0e0e0;
+}
+
+body.dark-mode .input-field label {
+  color: #b0bec5;
+}
+
+/* Selects (texto y dropdown) */
+body.dark-mode .select-dropdown,
+body.dark-mode .dropdown-content li > span {
+  color: #e0e0e0;
+  background-color: #1e1e1e;
+}
+
+/* Botones planos en oscuro */
+body.dark-mode .btn-flat {
+  color: #e0e0e0;
+}
+
+/* ===================== */
+/*     Modo impresión    */
+/* ===================== */
+
+@media print {
+  nav,
+  .no-print,
+  .modal,
+  .sidenav {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff;
+  }
+
+  main {
+    padding: 0;
+  }
+}

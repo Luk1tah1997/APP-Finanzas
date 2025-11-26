@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Finanzas - MVP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Materialize CSS -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="blue darken-3 no-print">
+    <div class="nav-wrapper container">
+      <a href="#!"
+        data-target="sidenav-main"
+        class="sidenav-trigger show-on-large">
+        <i class="material-icons">menu</i>
+      </a>
+      <a href="#!" class="brand-logo">Mis Finanzas</a>
+    </div>
+  </nav>
+
+  <!-- Menú lateral -->
+  <ul id="sidenav-main" class="sidenav">
+    <li>
+      <a href="#!" id="nav-nuevo-mov">
+        <i class="material-icons">add</i>Nuevo movimiento
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-toggle-filtros">
+        <i class="material-icons">filter_list</i>Mostrar / ocultar filtros
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-toggle-tabla">
+        <i class="material-icons">list</i>Mostrar / ocultar movimientos
+      </a>
+    </li>
+    <li><div class="divider"></div></li>
+    <li>
+      <a href="#!" id="nav-exportar-backup">
+        <i class="material-icons">file_download</i>Exportar backup (JSON)
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-importar-backup">
+        <i class="material-icons">file_upload</i>Importar backup (JSON)
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-exportar-csv">
+        <i class="material-icons">table_chart</i>Exportar CSV
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-imprimir">
+        <i class="material-icons">print</i>Imprimir / PDF
+      </a>
+    </li>
+    <li><div class="divider"></div></li>
+    <li>
+      <a href="#!" id="btn-open-config-modal">
+        <i class="material-icons">settings</i>Configuración
+      </a>
+    </li>
+  </ul>
+
+  <main class="container">
+
+    <!-- Resumen -->
+    <section id="section-resumen" class="section">
+      <h5 class="section-title">Resumen del período</h5>
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="card resumen-card card-ingresos">
+            <div class="card-content">
+              <span class="card-title">Ingresos</span>
+              <p>
+                <span class="currency-symbol" id="resumen-simbolo-ingresos">$</span>
+                <span id="total-ingresos">0.00</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="card resumen-card card-gastos">
+            <div class="card-content">
+              <span class="card-title">Gastos</span>
+              <p>
+                <span class="currency-symbol" id="resumen-simbolo-gastos">$</span>
+                <span id="total-gastos">0.00</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="card resumen-card card-balance">
+            <div class="card-content">
+              <span class="card-title">Balance</span>
+              <p>
+                <span class="currency-symbol" id="resumen-simbolo-balance">$</span>
+                <span id="total-balance">0.00</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filtros (inicia minimizado) -->
+    <section id="section-filtros" class="section no-print hide">
+      <h5 class="section-title">Filtros</h5>
+      <div class="card">
+        <div class="card-content">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <select id="filtro-periodo">
+                <option value="mes-actual" selected>Mes actual</option>
+                <option value="semana-actual">Semana actual</option>
+                <option value="anio-actual">Año actual</option>
+                <option value="ultimos-30">Últimos 30 días</option>
+                <option value="todo">Todo</option>
+              </select>
+              <label for="filtro-periodo">Período rápido</label>
+            </div>
+
+            <div class="input-field col s6 m3">
+              <input id="filtro-fecha-desde" type="date">
+              <label for="filtro-fecha-desde" class="active">Desde</label>
+            </div>
+
+            <div class="input-field col s6 m3">
+              <input id="filtro-fecha-hasta" type="date">
+              <label for="filtro-fecha-hasta" class="active">Hasta</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s6 m3">
+              <select id="filtro-tipo">
+                <option value="TODOS" selected>Todos</option>
+                <option value="INGRESO">Ingresos</option>
+                <option value="GASTO">Gastos</option>
+              </select>
+              <label for="filtro-tipo">Tipo</label>
+            </div>
+
+            <div class="input-field col s6 m3">
+              <select id="filtro-categoria">
+                <option value="TODAS" selected>Todas</option>
+              </select>
+              <label for="filtro-categoria">Categoría</label>
+            </div>
+
+            <div class="input-field col s6 m3">
+              <input id="filtro-monto-min" type="number" step="0.01" min="0">
+              <label for="filtro-monto-min">Monto mín.</label>
+            </div>
+
+            <div class="input-field col s6 m3">
+              <input id="filtro-monto-max" type="number" step="0.01" min="0">
+              <label for="filtro-monto-max">Monto máx.</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col s12 right-align">
+              <button id="btn-aplicar-filtros"
+                      class="btn waves-effect waves-light">
+                Aplicar filtros
+                <i class="material-icons right">filter_list</i>
+              </button>
+              <button id="btn-limpiar-filtros"
+                      class="btn-flat waves-effect">
+                Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla de movimientos (inicia minimizada) -->
+    <section id="section-tabla" class="section hide">
+      <h5 class="section-title">Movimientos</h5>
+      <div class="table-wrapper">
+        <table class="highlight">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Categoría</th>
+              <th>Monto</th>
+              <th>Nota</th>
+              <th class="no-print">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-movimientos-body">
+            <!-- Filas generadas por JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Alta / edición de movimiento -->
+  <div id="modal-movimiento" class="modal">
+    <div class="modal-content">
+      <h5 id="modal-movimiento-titulo">Nuevo movimiento</h5>
+      <form id="form-movimiento">
+        <div class="row">
+          <div class="input-field col s12 m4">
+            <input id="fecha" type="date" required>
+            <label for="fecha" class="active">Fecha</label>
+          </div>
+
+          <div class="input-field col s12 m4">
+            <p class="label-radio">Tipo</p>
+            <p>
+              <label>
+                <input name="tipo" type="radio" value="INGRESO">
+                <span>Ingreso</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input name="tipo" type="radio" value="GASTO">
+                <span>Gasto</span>
+              </label>
+            </p>
+          </div>
+
+          <div class="input-field col s12 m4">
+            <select id="categoria" required>
+              <option value="" disabled selected>Elige una categoría</option>
+            </select>
+            <label for="categoria">Categoría</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="input-field col s12 m4">
+            <input id="monto" type="number" step="0.01" min="0" required>
+            <label for="monto">Monto</label>
+          </div>
+          <div class="input-field col s12 m8">
+            <input id="nota" type="text" maxlength="120">
+            <label for="nota">Nota (opcional)</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12 right-align">
+            <button type="button"
+                    class="btn-flat waves-effect modal-close">
+              Cancelar
+            </button>
+            <button id="btn-guardar-movimiento"
+                    class="btn waves-effect waves-light"
+                    type="submit">
+              Agregar movimiento
+              <i class="material-icons right">add</i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmar eliminación -->
+  <div id="modal-eliminar" class="modal">
+    <div class="modal-content">
+      <h5>Eliminar movimiento</h5>
+      <p>¿Seguro que deseas eliminar este movimiento?</p>
+      <ul class="collection">
+        <li class="collection-item">
+          <strong>Fecha:</strong>
+          <span id="modal-eliminar-fecha"></span>
+        </li>
+        <li class="collection-item">
+          <strong>Tipo:</strong>
+          <span id="modal-eliminar-tipo"></span>
+        </li>
+        <li class="collection-item">
+          <strong>Categoría:</strong>
+          <span id="modal-eliminar-categoria"></span>
+        </li>
+        <li class="collection-item">
+          <strong>Monto:</strong>
+          <span id="modal-eliminar-moneda">$</span>
+          <span id="modal-eliminar-monto"></span>
+        </li>
+        <li class="collection-item">
+          <strong>Nota:</strong>
+          <span id="modal-eliminar-nota"></span>
+        </li>
+      </ul>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-flat waves-effect modal-close">
+        Cancelar
+      </button>
+      <button id="btn-confirmar-eliminar"
+              class="btn red waves-effect waves-light">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Configuración -->
+  <div id="modal-config" class="modal">
+    <div class="modal-content">
+      <h5>Configuración</h5>
+      <form id="form-config">
+        <div class="row">
+          <div class="input-field col s12 m6">
+            <select id="config-tema">
+              <option value="claro">Claro</option>
+              <option value="oscuro">Oscuro</option>
+            </select>
+            <label for="config-tema">Tema</label>
+          </div>
+          <div class="input-field col s12 m6">
+            <input id="config-moneda" type="text" maxlength="4">
+            <label for="config-moneda">Símbolo de moneda</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12 m4">
+            <label>
+              <input id="config-abrir-tabla" type="checkbox" class="filled-in">
+              <span>Abrir movimientos al iniciar</span>
+            </label>
+          </div>
+          <div class="col s12 m4">
+            <label>
+              <input id="config-abrir-filtros" type="checkbox" class="filled-in">
+              <span>Abrir filtros al iniciar</span>
+            </label>
+          </div>
+          <div class="col s12 m4">
+            <label>
+              <input id="config-abrir-modal" type="checkbox" class="filled-in">
+              <span>Abrir "Nuevo movimiento" al iniciar</span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-flat waves-effect modal-close">
+        Cancelar
+      </button>
+      <button id="btn-guardar-config"
+              class="btn waves-effect waves-light">
+        Guardar
+      </button>
+    </div>
+  </div>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- App JS -->
+  <script src="js/app.js"></script>
+</body>
+</html>

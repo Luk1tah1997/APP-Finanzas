@@ -46,6 +46,13 @@ body.dark-mode {
 /* =========================================================
    Layout base
    ========================================================= */
+   
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
 
 body {
   background-color: var(--color-bg);
@@ -463,11 +470,15 @@ body.dark-mode nav a {
 /* Sidenav */
 body.dark-mode .sidenav {
   background-color: #020617;
-  color: var(--color-text);
+  color: #e5e7eb; /* texto claro dentro del sidenav */
 }
 
 body.dark-mode .sidenav a {
-  color: var(--color-text);
+  color: #e5e7eb; /* links del menú en claro */
+}
+
+body.dark-mode .sidenav a i.material-icons {
+  color: #e5e7eb; /* iconos del menú en claro */
 }
 
 body.dark-mode .sidenav .divider {

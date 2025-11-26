@@ -25,6 +25,7 @@
     <div class="nav-wrapper container nav-layout">
       <!-- Izquierda: botón menú -->
       <a href="#!"
+        id="btn-sidenav-toggle"
         data-target="slide-out"
         class="sidenav-trigger show-on-large nav-layout__left">
         <i class="material-icons">menu</i>
@@ -36,8 +37,8 @@
       <!-- Derecha: logo -->
       <div class="nav-layout__right">
         <img src="img/logo.jfif"
-            alt="Mis Finanzas"
-            class="nav-logo-img">
+             alt="Mis Finanzas"
+             class="nav-logo-img">
       </div>
     </div>
   </nav>
@@ -57,6 +58,11 @@
     <li>
       <a href="#!" id="nav-dashboard">
         <i class="material-icons">insert_chart</i>Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-categorias">
+        <i class="material-icons">category</i>Categorías
       </a>
     </li>
     <li><div class="divider"></div></li>
@@ -207,6 +213,56 @@
       </div>
     </section>
 
+    <!-- Sección Categorías -->
+    <section id="section-categorias" class="section no-print hide">
+      <h5 class="section-title">Categorías</h5>
+      <div class="card">
+        <div class="card-content">
+          <div class="row">
+            <div class="col s12 m6">
+              <span class="card-title">Ingresos</span>
+              <ul id="lista-categorias-ingreso" class="collection">
+                <!-- items generados por JS -->
+              </ul>
+            </div>
+            <div class="col s12 m6">
+              <span class="card-title">Gastos</span>
+              <ul id="lista-categorias-gasto" class="collection">
+                <!-- items generados por JS -->
+              </ul>
+            </div>
+          </div>
+
+          <div class="row">
+            <form id="form-categoria" class="col s12">
+              <div class="row">
+                <div class="input-field col s12 m3">
+                  <select id="categoria-tipo">
+                    <option value="INGRESO" selected>Ingreso</option>
+                    <option value="GASTO">Gasto</option>
+                  </select>
+                  <label for="categoria-tipo">Tipo</label>
+                </div>
+                <div class="input-field col s12 m5">
+                  <input id="categoria-nombre" type="text" required>
+                  <label for="categoria-nombre">Nombre de categoría</label>
+                </div>
+                <div class="input-field col s12 m4">
+                  <button id="btn-guardar-categoria"
+                          class="btn waves-effect waves-light teal btn-full-width"
+                          type="submit">
+                    Guardar categoría
+                    <i class="material-icons right">save</i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
     <!-- Filtros (inicia minimizado) -->
     <section id="section-filtros" class="section no-print hide">
       <h5 class="section-title">Filtros</h5>
@@ -297,7 +353,7 @@
               <th>Fecha</th>
               <th>Tipo</th>
               <th>Categoría</th>
-              <th class="right-align">Monto</th>
+              <th class="left-align">Monto</th>
               <th>Nota</th>
               <th class="center-align no-print">Acciones</th>
             </tr>
@@ -309,16 +365,16 @@
         </div>
       </div>
     </section>
-    </main>
+  </main>
 
-    <footer class="app-footer no-print">
-      <div class="container">
-        <span class="footer-app-name">Mis Finanzas</span>
-        <span class="footer-divider">·</span>
-        <span class="footer-copy">© 2025</span>
-        <span class="footer-version">v2.1</span>
-      </div>
-    </footer>
+  <footer class="app-footer no-print">
+    <div class="container">
+      <span class="footer-app-name">Mis Finanzas</span>
+      <span class="footer-divider">·</span>
+      <span class="footer-copy">© 2025</span>
+      <span class="footer-version">v2.2</span>
+    </div>
+  </footer>
 
   <!-- Botón flotante para nuevo movimiento -->
   <div class="fixed-action-btn no-print">
@@ -477,6 +533,15 @@
           <label>
             <input id="config-abrir-modal" type="checkbox" class="filled-in">
             <span>Abrir "Nuevo movimiento" al iniciar</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col s12 m4">
+          <label>
+            <input id="config-mostrar-iconos" type="checkbox" class="filled-in">
+            <span>Mostrar iconos en categorías</span>
           </label>
         </div>
       </div>

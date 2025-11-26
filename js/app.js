@@ -11,7 +11,8 @@
 const STORAGE_KEYS = {
   MOVIMIENTOS: 'finanzas_movimientos',
   CATEGORIAS: 'finanzas_categorias',
-  CONFIG: 'finanzas_config'
+  CONFIG: 'finanzas_config',
+  CATEGORIA_ICONOS: 'finanzas_categoria_iconos'
 };
 
 // Categorías por tipo
@@ -29,6 +30,26 @@ const DEFAULT_CATEGORIAS = {
     'Otro gasto'
   ]
 };
+// Iconos por categoría (Material Icons)
+const DEFAULT_ICONOS_CATEGORIAS = {
+  INGRESO: {
+    'Salario': 'payments',
+    'Freelance': 'computer',
+    'Reintegro': 'undo',
+    'Otro ingreso': 'add_circle'
+  },
+  GASTO: {
+    'Alquiler': 'home',
+    'Servicios': 'bolt',
+    'Comida': 'restaurant',
+    'Transporte': 'directions_bus',
+    'Ocio': 'stadium',
+    'Salud': 'local_hospital',
+    'Educación': 'school',
+    'Deudas': 'receipt_long',
+    'Otro gasto': 'remove_circle'
+  }
+};
 
 // Config por defecto
 const DEFAULT_CONFIG = {
@@ -37,7 +58,8 @@ const DEFAULT_CONFIG = {
   abrirTablaAlInicio: true,
   abrirFiltrosAlInicio: false,
   abrirDashboardAlInicio: true,
-  abrirModalAlInicio: false
+  abrirModalAlInicio: false,
+  mostrarIconosCategorias: true
 };
 
 // Instancias de gráficos (Chart.js)
@@ -49,6 +71,7 @@ let chartBalanceTiempo = null;
 let movimientos = [];
 let categorias = { INGRESO: [], GASTO: [] };
 let config = null;
+let categoriaIconos = { INGRESO: {}, GASTO: {} };
 
 // Filtros actuales
 let filtros = {
@@ -105,6 +128,8 @@ let btnConfirmarEliminar;
 let radiosTipoMovimiento;
 let modalMovimientoTitulo;
 
+let chkConfigMostrarIconos;
+
 // Resumen símbolos
 let resumenSimboloIngresosEl;
 let resumenSimboloGastosEl;
@@ -138,12 +163,22 @@ let navExportarBackup;
 let navImportarBackup;
 let navExportarCSV;
 let navImprimir;
+let btnSidenavToggle;
 
 // Instancias de Materialize
 let modalMovimientoInstance;
 let modalEliminarInstance;
 let modalConfigInstance;
 let sidenavInstance;
+
+// referencias dom categorías
+let sectionCategorias;
+let listaCategoriasIngresoEl;
+let listaCategoriasGastoEl;
+let formCategoria;
+let selectCategoriaTipo;
+let inputCategoriaNombre;
+let navCategorias;
 
 // ====================
 //   Utilidades varias
@@ -190,6 +225,55 @@ function cargarMovimientosDesdeStorage() {
   }
 }
 
+function renderizarCategoriasManager() {
+  if (!listaCategoriasIngresoEl || !listaCategoriasGastoEl) return;
+
+  listaCategoriasIngresoEl.innerHTML = '';
+  listaCategoriasGastoEl.innerHTML = '';
+
+  (categorias.INGRESO || []).forEach(function (cat) {
+    const li = crearItemCategoria('INGRESO', cat);
+    listaCategoriasIngresoEl.appendChild(li);
+  });
+
+  (categorias.GASTO || []).forEach(function (cat) {
+    const li = crearItemCategoria('GASTO', cat);
+    listaCategoriasGastoEl.appendChild(li);
+  });
+}
+
+function cargarCategoriaIconosDesdeStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.CATEGORIA_ICONOS);
+    if (!raw) {
+      // si no hay nada, arrancamos con defaults
+      return clonarDefaultIconosCategorias();
+    }
+    const obj = JSON.parse(raw);
+    const ingreso = obj.INGRESO && typeof obj.INGRESO === 'object' ? obj.INGRESO : {};
+    const gasto = obj.GASTO && typeof obj.GASTO === 'object' ? obj.GASTO : {};
+    return { INGRESO: ingreso, GASTO: gasto };
+  } catch (e) {
+    console.error('Error cargando iconos de categorías:', e);
+    return clonarDefaultIconosCategorias();
+  }
+}
+
+function guardarCategoriaIconosEnStorage(iconos) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CATEGORIA_ICONOS, JSON.stringify(iconos));
+  } catch (e) {
+    console.error('Error guardando iconos de categorías:', e);
+  }
+}
+
+function clonarDefaultIconosCategorias() {
+  return {
+    INGRESO: { ...DEFAULT_ICONOS_CATEGORIAS.INGRESO },
+    GASTO: { ...DEFAULT_ICONOS_CATEGORIAS.GASTO }
+  };
+}
+
 function guardarCategoriasEnStorage(cats) {
   try {
     localStorage.setItem(STORAGE_KEYS.CATEGORIAS, JSON.stringify(cats));
@@ -222,6 +306,21 @@ function cargarCategoriasDesdeStorage() {
       GASTO: DEFAULT_CATEGORIAS.GASTO.slice()
     };
   }
+}
+
+function asegurarIconosParaCategoriasExistentes() {
+  ['INGRESO', 'GASTO'].forEach(function (tipo) {
+    if (!categoriaIconos[tipo]) {
+      categoriaIconos[tipo] = {};
+    }
+    (categorias[tipo] || []).forEach(function (cat) {
+      if (!categoriaIconos[tipo][cat]) {
+        const iconDefault = DEFAULT_ICONOS_CATEGORIAS[tipo][cat];
+        categoriaIconos[tipo][cat] = iconDefault || (tipo === 'INGRESO' ? 'trending_up' : 'trending_down');
+      }
+    });
+  });
+  guardarCategoriaIconosEnStorage(categoriaIconos);
 }
 
 function guardarConfigEnStorage(cfg) {
@@ -259,7 +358,11 @@ function cargarConfigDesdeStorage() {
       abrirModalAlInicio:
         typeof cfg.abrirModalAlInicio === 'boolean'
           ? cfg.abrirModalAlInicio
-          : DEFAULT_CONFIG.abrirModalAlInicio
+          : DEFAULT_CONFIG.abrirModalAlInicio,
+      mostrarIconosCategorias:
+        typeof cfg.mostrarIconosCategorias === 'boolean'
+          ? cfg.mostrarIconosCategorias
+          : DEFAULT_CONFIG.mostrarIconosCategorias
     };
   } catch (e) {
     console.error('Error cargando config desde localStorage:', e);
@@ -355,6 +458,12 @@ function poblarConfigEnUI() {
   if (chkConfigAbrirModal) {
     chkConfigAbrirModal.checked = !!config.abrirModalAlInicio;
   }
+  if (chkConfigMostrarIconos) {
+  chkConfigMostrarIconos.checked =
+    typeof config.mostrarIconosCategorias === 'boolean'
+      ? config.mostrarIconosCategorias
+      : true;
+  }
 }
 
 function guardarConfigDesdeUI() {
@@ -374,6 +483,9 @@ function guardarConfigDesdeUI() {
     ? chkConfigAbrirDashboard.checked
     : true;
   const abrirModal = chkConfigAbrirModal ? chkConfigAbrirModal.checked : false;
+  const mostrarIconos = chkConfigMostrarIconos
+  ? chkConfigMostrarIconos.checked
+  : true;
 
   config = {
     tema: nuevoTema,
@@ -381,12 +493,16 @@ function guardarConfigDesdeUI() {
     abrirTablaAlInicio: abrirTabla,
     abrirFiltrosAlInicio: abrirFiltros,
     abrirDashboardAlInicio: abrirDashboard,
-    abrirModalAlInicio: abrirModal
+    abrirModalAlInicio: abrirModal,
+    mostrarIconosCategorias: mostrarIconos
   };
 
   guardarConfigEnStorage(config);
   aplicarConfigTema();
   aplicarConfigMoneda();
+  renderizarCategoriasManager();
+  renderizarCategoriasSelect(null);
+  renderizarOpcionesFiltroCategoria();
   renderizarMovimientos();
   actualizarResumen();
 
@@ -404,6 +520,35 @@ function guardarConfigDesdeUI() {
 // ====================
 //   Helpers / modelo
 // ====================
+
+function crearItemCategoria(tipo, nombre) {
+  const li = document.createElement('li');
+  li.className = 'collection-item category-item';
+  li.dataset.tipo = tipo;
+  li.dataset.nombre = nombre;
+
+  const badge = crearBadgeCategoria(tipo, nombre);
+  li.appendChild(badge);
+
+  const acciones = document.createElement('div');
+  acciones.className = 'secondary-content';
+
+  const btnEditar = document.createElement('a');
+  btnEditar.href = '#!';
+  btnEditar.className = 'btn-flat btn-small waves-effect btn-renombrar-categoria';
+  btnEditar.innerHTML = '<i class="material-icons">edit</i>';
+  acciones.appendChild(btnEditar);
+
+  const btnEliminar = document.createElement('a');
+  btnEliminar.href = '#!';
+  btnEliminar.className = 'btn-flat btn-small waves-effect btn-eliminar-categoria';
+  btnEliminar.innerHTML = '<i class="material-icons">delete</i>';
+  acciones.appendChild(btnEliminar);
+
+  li.appendChild(acciones);
+
+  return li;
+}
 
 function calcularSiguienteId() {
   if (movimientos.length === 0) {
@@ -424,6 +569,37 @@ function obtenerFechaHoyYYYYMMDD() {
   return y + '-' + m + '-' + d;
 }
 
+// Obtiene el ícono para una categoría dada, o null si no hay categoría
+function obtenerIconoCategoria(tipo, categoria) {
+  if (!categoria) return null;
+  const mapaTipo = categoriaIconos[tipo] || {};
+  if (mapaTipo[categoria]) return mapaTipo[categoria];
+
+  const defTipo = DEFAULT_ICONOS_CATEGORIAS[tipo] || {};
+  if (defTipo[categoria]) return defTipo[categoria];
+
+  return tipo === 'INGRESO' ? 'trending_up' : 'trending_down';
+}
+
+function crearBadgeCategoria(tipo, categoria) {
+  const span = document.createElement('span');
+  span.className = 'category-badge';
+
+  const iconName = obtenerIconoCategoria(tipo, categoria);
+  if (iconName) {
+    const i = document.createElement('i');
+    i.className = 'material-icons';
+    i.textContent = iconName;
+    span.appendChild(i);
+  }
+
+  const text = document.createElement('span');
+  text.textContent = categoria || '-';
+  span.appendChild(text);
+
+  return span;
+}
+
 // ====================
 //    Inicialización
 // ====================
@@ -434,9 +610,11 @@ document.addEventListener('DOMContentLoaded', function () {
   movimientos = cargarMovimientosDesdeStorage();
   categorias = cargarCategoriasDesdeStorage();
   config = cargarConfigDesdeStorage();
-
+  categoriaIconos = cargarCategoriaIconosDesdeStorage();
+  asegurarIconosParaCategoriasExistentes();
   aplicarConfigTema();
   aplicarConfigMoneda();
+  renderizarCategoriasManager();
 
   calcularSiguienteId();
   inicializarEstadoFiltros();
@@ -533,6 +711,7 @@ function cacheDomElements() {
   chkConfigAbrirModal = document.getElementById('config-abrir-modal');
   btnGuardarConfig = document.getElementById('btn-guardar-config');
   btnOpenConfigModal = document.getElementById('btn-open-config-modal');
+  chkConfigMostrarIconos = document.getElementById('config-mostrar-iconos');
 
   // Items del menú lateral
   navToggleFiltros = document.getElementById('nav-toggle-filtros');
@@ -542,6 +721,18 @@ function cacheDomElements() {
   navImportarBackup = document.getElementById('nav-importar-backup');
   navExportarCSV = document.getElementById('nav-exportar-csv');
   navImprimir = document.getElementById('nav-imprimir');
+  btnSidenavToggle = document.getElementById('btn-sidenav-toggle');
+
+  // referencias dom categorías
+  sectionCategorias = document.getElementById('section-categorias');
+  listaCategoriasIngresoEl = document.getElementById('lista-categorias-ingreso');
+  listaCategoriasGastoEl = document.getElementById('lista-categorias-gasto');
+  formCategoria = document.getElementById('form-categoria');
+  selectCategoriaTipo = document.getElementById('categoria-tipo');
+  inputCategoriaNombre = document.getElementById('categoria-nombre');
+
+  navCategorias = document.getElementById('nav-categorias');
+
 }
 
 // ====================
@@ -551,6 +742,52 @@ function cacheDomElements() {
 function configurarEventos() {
   if (formMovimiento) {
     formMovimiento.addEventListener('submit', manejarSubmitMovimiento);
+  }
+  
+  if (btnSidenavToggle) {
+    btnSidenavToggle.addEventListener(
+      'click',
+      function (e) {
+        if (!sidenavInstance) return;
+
+        e.preventDefault();
+        // Evitamos que el handler interno de Materialize vuelva a abrir/cerrar
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') {
+          e.stopImmediatePropagation();
+        }
+
+        if (sidenavInstance.isOpen) {
+          sidenavInstance.close();
+        } else {
+          sidenavInstance.open();
+        }
+      },
+      true // captura, para correr antes que el listener de Materialize
+    );
+  }
+
+  if (navCategorias) {
+    navCategorias.addEventListener('click', function (e) {
+      e.preventDefault();
+      setCategoriasVisible(true);
+      const section = document.getElementById('section-categorias');
+      if (section && section.scrollIntoView) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      cerrarSidenav();
+    });
+  }
+
+  if (formCategoria) {
+    formCategoria.addEventListener('submit', manejarSubmitCategoria);
+  }
+
+  if (listaCategoriasIngresoEl) {
+    listaCategoriasIngresoEl.addEventListener('click', manejarClickListaCategorias);
+  }
+  if (listaCategoriasGastoEl) {
+    listaCategoriasGastoEl.addEventListener('click', manejarClickListaCategorias);
   }
 
   if (tablaBody) {
@@ -781,6 +1018,135 @@ function inicializarMaterialize() {
   }
 }
 
+function manejarSubmitCategoria(event) {
+  event.preventDefault();
+  if (!selectCategoriaTipo || !inputCategoriaNombre) return;
+
+  const tipo = selectCategoriaTipo.value === 'GASTO' ? 'GASTO' : 'INGRESO';
+  const nombreRaw = inputCategoriaNombre.value.trim();
+  if (!nombreRaw) {
+    mostrarMensaje('El nombre de la categoría es obligatorio.');
+    return;
+  }
+
+  const nombre = nombreRaw; // podés normalizar, pero mantenemos simple
+
+  if ((categorias[tipo] || []).includes(nombre)) {
+    mostrarMensaje('Esa categoría ya existe en ' + (tipo === 'INGRESO' ? 'Ingresos' : 'Gastos') + '.');
+    return;
+  }
+
+  categorias[tipo].push(nombre);
+  asegurarIconosParaCategoriasExistentes();
+  guardarCategoriasEnStorage(categorias);
+  guardarCategoriaIconosEnStorage(categoriaIconos);
+
+  renderizarCategoriasManager();
+  renderizarCategoriasSelect(null);
+  renderizarOpcionesFiltroCategoria();
+
+  inputCategoriaNombre.value = '';
+  if (window.M && M.updateTextFields) M.updateTextFields();
+
+  mostrarMensaje('Categoría agregada.');
+}
+function manejarClickListaCategorias(event) {
+  const btnRenombrar = event.target.closest('.btn-renombrar-categoria');
+  const btnEliminar = event.target.closest('.btn-eliminar-categoria');
+  const item = event.target.closest('.category-item');
+  if (!item) return;
+
+  const tipo = item.dataset.tipo === 'GASTO' ? 'GASTO' : 'INGRESO';
+  const nombre = item.dataset.nombre;
+
+  if (btnRenombrar) {
+    renombrarCategoria(tipo, nombre);
+    return;
+  }
+  if (btnEliminar) {
+    eliminarCategoria(tipo, nombre);
+    return;
+  }
+}
+function renombrarCategoria(tipo, nombreActual) {
+  const nuevoNombre = window.prompt('Nuevo nombre para la categoría:', nombreActual);
+  if (!nuevoNombre) return;
+
+  const nombreTrim = nuevoNombre.trim();
+  if (!nombreTrim) return;
+
+  if ((categorias[tipo] || []).includes(nombreTrim)) {
+    if (nombreTrim !== nombreActual) {
+      mostrarMensaje('Ya existe una categoría con ese nombre.');
+    }
+    return;
+  }
+
+  categorias[tipo] = (categorias[tipo] || []).map(function (c) {
+    return c === nombreActual ? nombreTrim : c;
+  });
+
+  // Movimientos que usan esta categoría
+  movimientos = movimientos.map(function (mov) {
+    if (mov.categoria === nombreActual) {
+      return { ...mov, categoria: nombreTrim };
+    }
+    return mov;
+  });
+
+  // Icono: movemos el valor
+  const iconoActual = categoriaIconos[tipo] && categoriaIconos[tipo][nombreActual];
+  if (!categoriaIconos[tipo]) categoriaIconos[tipo] = {};
+  if (iconoActual) {
+    categoriaIconos[tipo][nombreTrim] = iconoActual;
+  } else {
+    categoriaIconos[tipo][nombreTrim] = obtenerIconoCategoria(tipo, nombreTrim);
+  }
+  delete categoriaIconos[tipo][nombreActual];
+
+  guardarCategoriasEnStorage(categorias);
+  guardarMovimientosEnStorage(movimientos);
+  guardarCategoriaIconosEnStorage(categoriaIconos);
+
+  renderizarCategoriasManager();
+  renderizarCategoriasSelect(null);
+  renderizarOpcionesFiltroCategoria();
+  renderizarMovimientos();
+  actualizarResumen();
+
+  mostrarMensaje('Categoría renombrada.');
+}
+function eliminarCategoria(tipo, nombre) {
+  const enUso = movimientos.filter(function (mov) {
+    return mov.categoria === nombre && mov.tipo === tipo;
+  });
+
+  if (enUso.length > 0) {
+    const confirma = window.confirm(
+      'La categoría "' + nombre + '" se usa en ' + enUso.length +
+      ' movimiento(s). Si la eliminas, no podrás filtrar por ella.\n\n¿Deseas continuar?'
+    );
+    if (!confirma) return;
+  }
+
+  categorias[tipo] = (categorias[tipo] || []).filter(function (c) {
+    return c !== nombre;
+  });
+
+  if (categoriaIconos[tipo]) {
+    delete categoriaIconos[tipo][nombre];
+  }
+
+  guardarCategoriasEnStorage(categorias);
+  guardarCategoriaIconosEnStorage(categoriaIconos);
+
+  renderizarCategoriasManager();
+  renderizarCategoriasSelect(null);
+  renderizarOpcionesFiltroCategoria();
+
+  mostrarMensaje('Categoría eliminada.');
+}
+
 // ====================
 //   Render principal
 // ====================
@@ -873,11 +1239,16 @@ function renderizarMovimientos() {
     tr.appendChild(tdTipo);
 
     const tdCategoria = document.createElement('td');
-    tdCategoria.textContent = mov.categoria || '-';
+    if (config && config.mostrarIconosCategorias) {
+      const badge = crearBadgeCategoria(mov.tipo, mov.categoria || '-');
+      tdCategoria.appendChild(badge);
+    } else {
+      tdCategoria.textContent = mov.categoria || '-';
+    }
     tr.appendChild(tdCategoria);
 
     const tdMonto = document.createElement('td');
-    tdMonto.classList.add('right-align');
+    tdMonto.classList.add('left-align');
     tdMonto.textContent = simbolo + ' ' + mov.monto.toFixed(2);
     tr.appendChild(tdMonto);
 
@@ -1615,6 +1986,12 @@ function setDashboardVisible(visible) {
   else section.classList.add('hide');
 }
 
+function setCategoriasVisible(visible) {
+  if (!sectionCategorias) return;
+  if (visible) sectionCategorias.classList.remove('hide');
+  else sectionCategorias.classList.add('hide');
+}
+
 function cerrarSidenav() {
   if (sidenavInstance && typeof sidenavInstance.close === 'function') {
     sidenavInstance.close();
@@ -1693,10 +2070,11 @@ function convertirFechaADateString(fecha) {
 
 function exportarBackupJSON() {
   const data = {
-    version: 1,
+    version: 2,
     fecha_exportacion: new Date().toISOString(),
     movimientos: movimientos,
     categorias: categorias,
+    categoriaIconos: categoriaIconos, 
     configuracion: config
   };
 
@@ -1745,6 +2123,13 @@ function manejarImportarBackup(event) {
       categorias = data.categorias;
       config = data.configuracion;
 
+      if (data.categoriaIconos) {
+        categoriaIconos = data.categoriaIconos;
+      } else {
+        categoriaIconos = clonarDefaultIconosCategorias();
+      }
+      asegurarIconosParaCategoriasExistentes();
+
       guardarMovimientosEnStorage(movimientos);
       guardarCategoriasEnStorage(categorias);
       guardarConfigEnStorage(config);
@@ -1754,6 +2139,7 @@ function manejarImportarBackup(event) {
 
       calcularSiguienteId();
       inicializarEstadoFiltros();
+      renderizarCategoriasManager();
 
       renderizarCategoriasSelect(null);
       renderizarOpcionesFiltroCategoria();

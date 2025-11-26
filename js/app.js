@@ -43,6 +43,7 @@ const DEFAULT_CONFIG = {
 // Instancias de gráficos (Chart.js)
 let chartIngresosGastos = null;
 let chartGastosPorCategoria = null;
+let chartBalanceTiempo = null;
 
 // Estado en memoria
 let movimientos = [];
@@ -616,7 +617,7 @@ function configurarEventos() {
     btnConfirmarEliminar.addEventListener('click', confirmarEliminacion);
   }
 
-  // Navegación en el sidenav
+  // Navegación sidenav
   if (navToggleFiltros) {
     navToggleFiltros.addEventListener('click', function (e) {
       e.preventDefault();
@@ -698,7 +699,17 @@ function configurarEventos() {
   if (selectFiltroPeriodo) {
     selectFiltroPeriodo.addEventListener('change', manejarCambioFiltroPeriodo);
   }
+
+  // NUEVO: cuando cambia Ingreso/Gasto, recargamos categorías del modal
+  if (radiosTipoMovimiento && radiosTipoMovimiento.length) {
+    radiosTipoMovimiento.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        renderizarCategoriasSelect(null);
+      });
+    });
+  }
 }
+
 
 function inicializarMaterialize() {
   // Inicializamos componentes de Materialize de forma defensiva. Si uno falla,
@@ -1014,6 +1025,44 @@ function calcularEstadisticasDashboard() {
   return resultado;
 }
 
+// Construye la serie de balance acumulado por fecha
+function construirSerieBalancePorFecha(listaMovimientos) {
+  const netoPorFecha = {};
+
+  listaMovimientos.forEach(function (mov) {
+    if (!mov.fecha) return;
+
+    let factor = 0;
+    if (mov.tipo === 'INGRESO') {
+      factor = 1;
+    } else if (mov.tipo === 'GASTO') {
+      factor = -1;
+    }
+
+    if (!netoPorFecha[mov.fecha]) {
+      netoPorFecha[mov.fecha] = 0;
+    }
+    netoPorFecha[mov.fecha] += mov.monto * factor;
+  });
+
+  const fechas = Object.keys(netoPorFecha).sort(); // YYYY-MM-DD ordena bien
+
+  const labels = [];
+  const valores = [];
+  let acumulado = 0;
+
+  fechas.forEach(function (fecha) {
+    acumulado += netoPorFecha[fecha];
+    labels.push(fecha);
+    valores.push(acumulado);
+  });
+
+  return {
+    labels: labels,
+    valores: valores
+  };
+}
+
 // Renderiza dashboard
 function renderizarDashboard() {
   if (
@@ -1038,13 +1087,20 @@ function renderizarDashboard() {
   dashboardCantMovGastosEl.textContent = String(stats.cantMovGastos);
   dashboardCantMovTotalEl.textContent = String(stats.cantMovTotal);
 
+  // Gráfico de barras: Ingresos vs Gastos
   actualizarChartIngresosGastos(
     stats.totalIngresos,
     stats.totalGastos,
     simbolo
   );
 
+  // Movimientos filtrados del período
   const listaFiltrada = obtenerMovimientosFiltrados();
+
+  // Gráfico de línea: balance en el tiempo
+  actualizarChartBalanceTiempo(listaFiltrada, simbolo);
+
+  // Gráfico de torta: distribución de gastos por categoría
   actualizarChartGastosPorCategoria(listaFiltrada);
 }
 
@@ -1145,6 +1201,67 @@ function actualizarChartGastosPorCategoria(listaMovimientos) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+// Gráfico de línea: balance acumulado en el tiempo
+function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
+  const canvas = document.getElementById('chart-line-balance-tiempo');
+  if (!canvas || typeof Chart === 'undefined') {
+    return;
+  }
+
+  const serie = construirSerieBalancePorFecha(listaMovimientos);
+
+  // Si no hay datos, destruimos el gráfico si existía y salimos
+  if (!serie.labels.length) {
+    if (chartBalanceTiempo) {
+      chartBalanceTiempo.destroy();
+      chartBalanceTiempo = null;
+    }
+    return;
+  }
+
+  const dataset = {
+    label: 'Balance (' + simbolo + ')',
+    data: serie.valores,
+    fill: false,
+    borderColor: '#26a69a',
+    tension: 0.25,
+    pointRadius: 3,
+    pointHoverRadius: 4
+  };
+
+  if (chartBalanceTiempo) {
+    chartBalanceTiempo.data.labels = serie.labels;
+    chartBalanceTiempo.data.datasets[0] = dataset;
+    chartBalanceTiempo.update();
+    return;
+  }
+
+  chartBalanceTiempo = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: serie.labels,
+      datasets: [dataset]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
     }
   });
 }

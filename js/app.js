@@ -1,5 +1,5 @@
 // app.js
-// SPA finanzas personales - V2.3 con calendario y timeline
+// SPA finanzas personales - V2.4 (modal mejorado, calendario multi-vista, timeline, dashboard)
 
 'use strict';
 
@@ -30,6 +30,7 @@ const DEFAULT_CATEGORIAS = {
     'Otro gasto'
   ]
 };
+
 // Iconos por categoría (Material Icons)
 const DEFAULT_ICONOS_CATEGORIAS = {
   INGRESO: {
@@ -61,7 +62,10 @@ const DEFAULT_CONFIG = {
   abrirModalAlInicio: false,
   mostrarIconosCategorias: true,
   abrirCalendarioAlInicio: false,
-  abrirTimelineAlInicio: false
+  abrirTimelineAlInicio: false,
+  calendarioVistaPreferida: 'mes' // 'mes' | 'semana' | 'anio'
+  ,
+  mostrarGraficoFormaPago: true
 };
 
 // Instancias de gráficos (Chart.js)
@@ -69,6 +73,7 @@ let chartIngresosGastos = null;
 let chartGastosPorCategoria = null;
 let chartBalanceTiempo = null;
 let chartTimeline = null;
+let chartFormaPago = null;
 
 // Estado en memoria
 let movimientos = [];
@@ -83,6 +88,7 @@ let filtros = {
   fechaHasta: null,
   tipo: 'TODOS',
   categoria: 'TODAS',
+  formaPago: 'TODAS',
   montoMin: null,
   montoMax: null
 };
@@ -93,8 +99,9 @@ let movimientoEnEliminacion = null;
 
 // ID incremental
 let nextId = 1;
+
 // Calendario
-let calendarCurrentDate = new Date(); // mes que se está mostrando
+let calendarCurrentDate = new Date(); // referencia de mes/año actual
 let calendarSelectedDate = null;      // 'YYYY-MM-DD' seleccionada
 
 // ====================
@@ -105,7 +112,11 @@ let formMovimiento;
 let inputFecha;
 let inputMonto;
 let inputNota;
+let movimientoErrorEl;
+let montoQuickActionsContainer;
+let inputCategoriaBusqueda;
 let selectCategoriaMovimiento;
+let selectFormaPagoMovimiento;
 let tablaBody;
 let totalIngresosEl;
 let totalGastosEl;
@@ -125,6 +136,7 @@ let inputFiltroFechaDesde;
 let inputFiltroFechaHasta;
 let selectFiltroTipo;
 let selectFiltroCategoria;
+let selectFiltroFormaPago;
 let inputFiltroMontoMin;
 let inputFiltroMontoMax;
 let btnAplicarFiltros;
@@ -137,6 +149,8 @@ let modalMovimientoTitulo;
 let chkConfigMostrarIconos;
 let chkConfigAbrirCalendario;
 let chkConfigAbrirTimeline;
+let selectConfigCalendarioVista;
+
 // Resumen símbolos
 let resumenSimboloIngresosEl;
 let resumenSimboloGastosEl;
@@ -166,6 +180,7 @@ let chkConfigAbrirDashboard;
 let chkConfigAbrirModal;
 let btnGuardarConfig;
 let btnOpenConfigModal;
+let chkConfigMostrarGraficoForma;
 
 // Sidenav DOM
 let navToggleFiltros;
@@ -179,13 +194,7 @@ let btnSidenavToggle;
 let navCalendario;
 let navTimeline;
 
-// Instancias de Materialize
-let modalMovimientoInstance;
-let modalEliminarInstance;
-let modalConfigInstance;
-let sidenavInstance;
-
-// referencias dom categorías
+// Categorías DOM
 let sectionCategorias;
 let listaCategoriasIngresoEl;
 let listaCategoriasGastoEl;
@@ -193,6 +202,7 @@ let formCategoria;
 let selectCategoriaTipo;
 let inputCategoriaNombre;
 let navCategorias;
+
 // Calendario DOM
 let calendarGridEl;
 let calendarMonthLabelEl;
@@ -205,12 +215,20 @@ let calendarMovimientosEmptyEl;
 let btnCalendarPrev;
 let btnCalendarNext;
 let btnCalendarToday;
+let selectCalendarViewMode;
+let calendarWeekdaysRowEl;
 
 // Timeline DOM
 let selectTimelinePeriodo;
 let chkTimelineIngresos;
 let chkTimelineGastos;
 let chkTimelineBalance;
+
+// Instancias de Materialize
+let modalMovimientoInstance;
+let modalEliminarInstance;
+let modalConfigInstance;
+let sidenavInstance;
 
 // ====================
 //   Utilidades varias
@@ -222,6 +240,16 @@ function mostrarMensaje(mensaje) {
   } else {
     alert(mensaje);
   }
+}
+
+function mostrarErrorMovimiento(mensaje) {
+  if (movimientoErrorEl) {
+    movimientoErrorEl.textContent = mensaje || '';
+  }
+}
+
+function limpiarErrorMovimiento() {
+  mostrarErrorMovimiento('');
 }
 
 function guardarMovimientosEnStorage(lista) {
@@ -248,62 +276,14 @@ function cargarMovimientosDesdeStorage() {
           typeof mov.monto === 'number'
             ? mov.monto
             : parseFloat(mov.monto) || 0,
-        nota: mov.nota || ''
+        nota: mov.nota || '',
+        formaPago: mov.formaPago || ''
       };
     });
   } catch (e) {
     console.error('Error cargando movimientos desde localStorage:', e);
     return [];
   }
-}
-
-function renderizarCategoriasManager() {
-  if (!listaCategoriasIngresoEl || !listaCategoriasGastoEl) return;
-
-  listaCategoriasIngresoEl.innerHTML = '';
-  listaCategoriasGastoEl.innerHTML = '';
-
-  (categorias.INGRESO || []).forEach(function (cat) {
-    const li = crearItemCategoria('INGRESO', cat);
-    listaCategoriasIngresoEl.appendChild(li);
-  });
-
-  (categorias.GASTO || []).forEach(function (cat) {
-    const li = crearItemCategoria('GASTO', cat);
-    listaCategoriasGastoEl.appendChild(li);
-  });
-}
-
-function cargarCategoriaIconosDesdeStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CATEGORIA_ICONOS);
-    if (!raw) {
-      // si no hay nada, arrancamos con defaults
-      return clonarDefaultIconosCategorias();
-    }
-    const obj = JSON.parse(raw);
-    const ingreso = obj.INGRESO && typeof obj.INGRESO === 'object' ? obj.INGRESO : {};
-    const gasto = obj.GASTO && typeof obj.GASTO === 'object' ? obj.GASTO : {};
-    return { INGRESO: ingreso, GASTO: gasto };
-  } catch (e) {
-    console.error('Error cargando iconos de categorías:', e);
-    return clonarDefaultIconosCategorias();
-  }
-}
-
-function guardarCategoriaIconosEnStorage(iconos) {
-  try {
-    localStorage.setItem(STORAGE_KEYS.CATEGORIA_ICONOS, JSON.stringify(iconos));
-  } catch (e) {
-    console.error('Error guardando iconos de categorías:', e);
-  }
-}
-
-function clonarDefaultIconosCategorias() {
-  return {
-    INGRESO: { ...DEFAULT_ICONOS_CATEGORIAS.INGRESO },
-    GASTO: { ...DEFAULT_ICONOS_CATEGORIAS.GASTO }
-  };
 }
 
 function guardarCategoriasEnStorage(cats) {
@@ -340,6 +320,39 @@ function cargarCategoriasDesdeStorage() {
   }
 }
 
+function clonarDefaultIconosCategorias() {
+  return {
+    INGRESO: { ...DEFAULT_ICONOS_CATEGORIAS.INGRESO },
+    GASTO: { ...DEFAULT_ICONOS_CATEGORIAS.GASTO }
+  };
+}
+
+function cargarCategoriaIconosDesdeStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.CATEGORIA_ICONOS);
+    if (!raw) {
+      return clonarDefaultIconosCategorias();
+    }
+    const obj = JSON.parse(raw);
+    const ingreso =
+      obj.INGRESO && typeof obj.INGRESO === 'object' ? obj.INGRESO : {};
+    const gasto =
+      obj.GASTO && typeof obj.GASTO === 'object' ? obj.GASTO : {};
+    return { INGRESO: ingreso, GASTO: gasto };
+  } catch (e) {
+    console.error('Error cargando iconos de categorías:', e);
+    return clonarDefaultIconosCategorias();
+  }
+}
+
+function guardarCategoriaIconosEnStorage(iconos) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CATEGORIA_ICONOS, JSON.stringify(iconos));
+  } catch (e) {
+    console.error('Error guardando iconos de categorías:', e);
+  }
+}
+
 function asegurarIconosParaCategoriasExistentes() {
   ['INGRESO', 'GASTO'].forEach(function (tipo) {
     if (!categoriaIconos[tipo]) {
@@ -348,7 +361,8 @@ function asegurarIconosParaCategoriasExistentes() {
     (categorias[tipo] || []).forEach(function (cat) {
       if (!categoriaIconos[tipo][cat]) {
         const iconDefault = DEFAULT_ICONOS_CATEGORIAS[tipo][cat];
-        categoriaIconos[tipo][cat] = iconDefault || (tipo === 'INGRESO' ? 'trending_up' : 'trending_down');
+        categoriaIconos[tipo][cat] =
+          iconDefault || (tipo === 'INGRESO' ? 'trending_up' : 'trending_down');
       }
     });
   });
@@ -369,6 +383,12 @@ function cargarConfigDesdeStorage() {
     if (!raw) return { ...DEFAULT_CONFIG };
 
     const cfg = JSON.parse(raw);
+    const calendarioVista =
+      cfg.calendarioVistaPreferida === 'semana' ||
+      cfg.calendarioVistaPreferida === 'anio'
+        ? cfg.calendarioVistaPreferida
+        : 'mes';
+
     return {
       tema: cfg.tema === 'oscuro' ? 'oscuro' : 'claro',
       monedaSimbolo:
@@ -402,13 +422,15 @@ function cargarConfigDesdeStorage() {
       abrirTimelineAlInicio:
         typeof cfg.abrirTimelineAlInicio === 'boolean'
           ? cfg.abrirTimelineAlInicio
-          : DEFAULT_CONFIG.abrirTimelineAlInicio
+          : DEFAULT_CONFIG.abrirTimelineAlInicio,
+      calendarioVistaPreferida: calendarioVista
     };
   } catch (e) {
     console.error('Error cargando config desde localStorage:', e);
     return { ...DEFAULT_CONFIG };
   }
 }
+
 // Refresca un <select> de Materialize cuando cambiamos su valor por JS
 function refrescarSelectMaterialize(selectElem) {
   if (!window.M || !M.FormSelect || !selectElem) return;
@@ -421,7 +443,7 @@ function refrescarSelectMaterialize(selectElem) {
 }
 
 // ====================
-//   Config / tema
+//   Config / tema / moneda
 // ====================
 
 function aplicarConfigTema() {
@@ -465,12 +487,11 @@ function poblarConfigEnUI() {
     refrescarSelectMaterialize(selectConfigTema);
   }
 
-  // Moneda (select con opciones predefinidas)
+  // Moneda
   if (inputConfigMoneda) {
     const simboloActual =
       config.monedaSimbolo || DEFAULT_CONFIG.monedaSimbolo;
 
-    // si la opción no existe, usamos el default
     let valorAUsar = simboloActual;
     const opciones = Array.prototype.slice.call(
       inputConfigMoneda.options || []
@@ -484,6 +505,14 @@ function poblarConfigEnUI() {
 
     inputConfigMoneda.value = valorAUsar;
     refrescarSelectMaterialize(inputConfigMoneda);
+  }
+
+  // Calendario vista preferida
+  if (selectConfigCalendarioVista) {
+    const vista =
+      config.calendarioVistaPreferida || DEFAULT_CONFIG.calendarioVistaPreferida;
+    selectConfigCalendarioVista.value = vista;
+    refrescarSelectMaterialize(selectConfigCalendarioVista);
   }
 
   // Checkboxes
@@ -502,11 +531,17 @@ function poblarConfigEnUI() {
   if (chkConfigAbrirModal) {
     chkConfigAbrirModal.checked = !!config.abrirModalAlInicio;
   }
+  if (chkConfigMostrarGraficoForma) {
+    chkConfigMostrarGraficoForma.checked =
+      typeof config.mostrarGraficoFormaPago === 'boolean'
+        ? config.mostrarGraficoFormaPago
+        : true;
+  }
   if (chkConfigMostrarIconos) {
-  chkConfigMostrarIconos.checked =
-    typeof config.mostrarIconosCategorias === 'boolean'
-      ? config.mostrarIconosCategorias
-      : true;
+    chkConfigMostrarIconos.checked =
+      typeof config.mostrarIconosCategorias === 'boolean'
+        ? config.mostrarIconosCategorias
+        : true;
   }
   if (chkConfigAbrirCalendario) {
     chkConfigAbrirCalendario.checked = !!config.abrirCalendarioAlInicio;
@@ -536,13 +571,20 @@ function guardarConfigDesdeUI() {
     ? chkConfigMostrarIconos.checked
     : true;
 
-  // Opcionales añadidos recientemente (si existen en el DOM)
+  const mostrarGraficoForma = chkConfigMostrarGraficoForma
+    ? chkConfigMostrarGraficoForma.checked
+    : true;
+
   const abrirCalendario = chkConfigAbrirCalendario
     ? chkConfigAbrirCalendario.checked
     : false;
   const abrirTimeline = chkConfigAbrirTimeline
     ? chkConfigAbrirTimeline.checked
     : false;
+
+  const calendarioVista = selectConfigCalendarioVista
+    ? selectConfigCalendarioVista.value || 'mes'
+    : 'mes';
 
   config = {
     tema: nuevoTema,
@@ -552,8 +594,10 @@ function guardarConfigDesdeUI() {
     abrirDashboardAlInicio: abrirDashboard,
     abrirModalAlInicio: abrirModal,
     mostrarIconosCategorias: mostrarIconos,
+    mostrarGraficoFormaPago: mostrarGraficoForma,
     abrirCalendarioAlInicio: abrirCalendario,
     abrirTimelineAlInicio: abrirTimeline,
+    calendarioVistaPreferida: calendarioVista
   };
 
   guardarConfigEnStorage(config);
@@ -564,10 +608,19 @@ function guardarConfigDesdeUI() {
   renderizarOpcionesFiltroCategoria();
   renderizarMovimientos();
   actualizarResumen();
+  renderizarCalendario();
+
+  // Actualizar selects de vista calendario
+  if (selectCalendarViewMode) {
+    selectCalendarViewMode.value = calendarioVista;
+    refrescarSelectMaterialize(selectCalendarViewMode);
+  }
 
   setFiltrosVisible(config.abrirFiltrosAlInicio);
   setTablaVisible(config.abrirTablaAlInicio);
   setDashboardVisible(config.abrirDashboardAlInicio);
+  // Mostrar/ocultar gráfico de forma de pago según la configuración
+  setMostrarGraficoForma(!!config.mostrarGraficoFormaPago);
   setCalendarioVisible(config.abrirCalendarioAlInicio);
   setTimelineVisible(config.abrirTimelineAlInicio);
 
@@ -596,13 +649,15 @@ function crearItemCategoria(tipo, nombre) {
 
   const btnEditar = document.createElement('a');
   btnEditar.href = '#!';
-  btnEditar.className = 'btn-flat btn-small waves-effect btn-renombrar-categoria';
+  btnEditar.className =
+    'btn-flat btn-small waves-effect btn-renombrar-categoria';
   btnEditar.innerHTML = '<i class="material-icons">edit</i>';
   acciones.appendChild(btnEditar);
 
   const btnEliminar = document.createElement('a');
   btnEliminar.href = '#!';
-  btnEliminar.className = 'btn-flat btn-small waves-effect btn-eliminar-categoria';
+  btnEliminar.className =
+    'btn-flat btn-small waves-effect btn-eliminar-categoria';
   btnEliminar.innerHTML = '<i class="material-icons">delete</i>';
   acciones.appendChild(btnEliminar);
 
@@ -661,6 +716,13 @@ function crearBadgeCategoria(tipo, categoria) {
   return span;
 }
 
+function obtenerTipoCategoriaPorNombre(nombre) {
+  if (!nombre) return null;
+  if ((categorias.INGRESO || []).includes(nombre)) return 'INGRESO';
+  if ((categorias.GASTO || []).includes(nombre)) return 'GASTO';
+  return null;
+}
+
 // ====================
 //    Inicialización
 // ====================
@@ -673,12 +735,19 @@ document.addEventListener('DOMContentLoaded', function () {
   config = cargarConfigDesdeStorage();
   categoriaIconos = cargarCategoriaIconosDesdeStorage();
   asegurarIconosParaCategoriasExistentes();
+
   aplicarConfigTema();
   aplicarConfigMoneda();
   renderizarCategoriasManager();
 
   calcularSiguienteId();
   inicializarEstadoFiltros();
+
+  // Vista de calendario preferida en el select
+  if (selectCalendarViewMode && config) {
+    selectCalendarViewMode.value =
+      config.calendarioVistaPreferida || DEFAULT_CONFIG.calendarioVistaPreferida;
+  }
 
   renderizarCategoriasSelect(null);
   renderizarOpcionesFiltroCategoria();
@@ -722,7 +791,11 @@ function cacheDomElements() {
   inputFecha = document.getElementById('fecha');
   inputMonto = document.getElementById('monto');
   inputNota = document.getElementById('nota');
+  movimientoErrorEl = document.getElementById('movimiento-error');
+  montoQuickActionsContainer = document.getElementById('monto-quick-actions');
+  inputCategoriaBusqueda = document.getElementById('categoria-busqueda');
   selectCategoriaMovimiento = document.getElementById('categoria');
+  selectFormaPagoMovimiento = document.getElementById('forma-pago');
   tablaBody = document.getElementById('tabla-movimientos-body');
   totalIngresosEl = document.getElementById('total-ingresos');
   totalGastosEl = document.getElementById('total-gastos');
@@ -753,6 +826,7 @@ function cacheDomElements() {
   inputFiltroFechaHasta = document.getElementById('filtro-fecha-hasta');
   selectFiltroTipo = document.getElementById('filtro-tipo');
   selectFiltroCategoria = document.getElementById('filtro-categoria');
+  selectFiltroFormaPago = document.getElementById('filtro-forma-pago');
   inputFiltroMontoMin = document.getElementById('filtro-monto-min');
   inputFiltroMontoMax = document.getElementById('filtro-monto-max');
   btnAplicarFiltros = document.getElementById('btn-aplicar-filtros');
@@ -780,13 +854,17 @@ function cacheDomElements() {
   chkConfigAbrirFiltros = document.getElementById('config-abrir-filtros');
   chkConfigAbrirDashboard = document.getElementById('config-abrir-dashboard');
   chkConfigAbrirModal = document.getElementById('config-abrir-modal');
-  btnGuardarConfig = document.getElementById('btn-guardar-config');
-  btnOpenConfigModal = document.getElementById('btn-open-config-modal');
+  chkConfigMostrarGraficoForma = document.getElementById('config-mostrar-grafico-forma');
   chkConfigMostrarIconos = document.getElementById('config-mostrar-iconos');
   chkConfigAbrirCalendario = document.getElementById('config-abrir-calendario');
   chkConfigAbrirTimeline = document.getElementById('config-abrir-timeline');
+  selectConfigCalendarioVista =
+    document.getElementById('config-calendario-vista');
 
-  // Items del menú lateral
+  btnGuardarConfig = document.getElementById('btn-guardar-config');
+  btnOpenConfigModal = document.getElementById('btn-open-config-modal');
+
+  // Menú lateral
   navToggleFiltros = document.getElementById('nav-toggle-filtros');
   navToggleTabla = document.getElementById('nav-toggle-tabla');
   navDashboard = document.getElementById('nav-dashboard');
@@ -798,14 +876,13 @@ function cacheDomElements() {
   navCalendario = document.getElementById('nav-calendario');
   navTimeline = document.getElementById('nav-timeline');
 
-  // referencias dom categorías
+  // Categorías
   sectionCategorias = document.getElementById('section-categorias');
   listaCategoriasIngresoEl = document.getElementById('lista-categorias-ingreso');
   listaCategoriasGastoEl = document.getElementById('lista-categorias-gasto');
   formCategoria = document.getElementById('form-categoria');
   selectCategoriaTipo = document.getElementById('categoria-tipo');
   inputCategoriaNombre = document.getElementById('categoria-nombre');
-
   navCategorias = document.getElementById('nav-categorias');
 
   // Calendario
@@ -820,6 +897,8 @@ function cacheDomElements() {
   btnCalendarPrev = document.getElementById('btn-calendar-prev');
   btnCalendarNext = document.getElementById('btn-calendar-next');
   btnCalendarToday = document.getElementById('btn-calendar-today');
+  selectCalendarViewMode = document.getElementById('calendar-view-mode');
+  calendarWeekdaysRowEl = document.querySelector('.calendar-weekdays');
 
   // Timeline
   selectTimelinePeriodo = document.getElementById('timeline-periodo');
@@ -834,7 +913,6 @@ function cacheDomElements() {
     document.querySelector('.calendar-day-simbolo-gastos');
   calendarSimboloBalanceEl =
     document.querySelector('.calendar-day-simbolo-balance');
-
 }
 
 // ====================
@@ -846,6 +924,58 @@ function configurarEventos() {
     formMovimiento.addEventListener('submit', manejarSubmitMovimiento);
   }
 
+  // Limpiar errores al editar campos del modal
+  if (inputFecha) inputFecha.addEventListener('input', limpiarErrorMovimiento);
+  if (inputMonto) inputMonto.addEventListener('input', limpiarErrorMovimiento);
+  if (inputNota) inputNota.addEventListener('input', limpiarErrorMovimiento);
+
+  if (selectCategoriaMovimiento) {
+    selectCategoriaMovimiento.addEventListener('change', function () {
+      limpiarErrorMovimiento();
+      manejarCambioCategoriaEnModal();
+    });
+  }
+  if (radiosTipoMovimiento && radiosTipoMovimiento.length) {
+    radiosTipoMovimiento.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        limpiarErrorMovimiento();
+        renderizarCategoriasSelect(null);
+      });
+    });
+  }
+
+  // Botones de monto rápido
+  if (montoQuickActionsContainer && inputMonto) {
+    montoQuickActionsContainer.addEventListener('click', function (event) {
+      const btn = event.target.closest('.btn-monto-rapido');
+      if (!btn) return;
+      event.preventDefault();
+      limpiarErrorMovimiento();
+
+      const action = btn.dataset.action;
+      if (action === 'add') {
+        const value = parseFloat(btn.dataset.value || '0');
+        if (Number.isNaN(value)) return;
+        const actual = parseFloat(inputMonto.value || '0') || 0;
+        const nuevo = actual + value;
+        inputMonto.value = nuevo.toFixed(2).replace(/\.00$/, '');
+        if (window.M && M.updateTextFields) M.updateTextFields();
+      } else if (action === 'copiar-ultimo') {
+        copiarUltimoMontoPorCategoria();
+      }
+    });
+  }
+
+  // Búsqueda de categoría
+  if (inputCategoriaBusqueda) {
+    inputCategoriaBusqueda.addEventListener('input', function () {
+      const seleccionActual = selectCategoriaMovimiento
+        ? selectCategoriaMovimiento.value
+        : null;
+      renderizarCategoriasSelect(seleccionActual);
+    });
+  }
+
   if (btnSidenavToggle) {
     btnSidenavToggle.addEventListener(
       'click',
@@ -853,7 +983,6 @@ function configurarEventos() {
         if (!sidenavInstance) return;
 
         e.preventDefault();
-        // Evitamos que el handler interno de Materialize vuelva a abrir/cerrar
         e.stopPropagation();
         if (typeof e.stopImmediatePropagation === 'function') {
           e.stopImmediatePropagation();
@@ -865,7 +994,7 @@ function configurarEventos() {
           sidenavInstance.open();
         }
       },
-      true // captura, para correr antes que el listener de Materialize
+      true
     );
   }
 
@@ -881,7 +1010,7 @@ function configurarEventos() {
     });
   }
 
-    if (navCalendario) {
+  if (navCalendario) {
     navCalendario.addEventListener('click', function (e) {
       e.preventDefault();
       setCalendarioVisible(true);
@@ -904,7 +1033,8 @@ function configurarEventos() {
       cerrarSidenav();
     });
   }
-  // Navegación del calendario
+
+  // Navegación del calendario (mes anterior / siguiente / hoy)
   if (btnCalendarPrev) {
     btnCalendarPrev.addEventListener('click', function () {
       const d =
@@ -938,15 +1068,32 @@ function configurarEventos() {
     });
   }
 
+  if (selectCalendarViewMode) {
+    selectCalendarViewMode.addEventListener('change', function () {
+      const vista = selectCalendarViewMode.value || 'mes';
+      if (config) {
+        config.calendarioVistaPreferida = vista;
+        guardarConfigEnStorage(config);
+      }
+      renderizarCalendario();
+    });
+  }
+
   if (formCategoria) {
     formCategoria.addEventListener('submit', manejarSubmitCategoria);
   }
 
   if (listaCategoriasIngresoEl) {
-    listaCategoriasIngresoEl.addEventListener('click', manejarClickListaCategorias);
+    listaCategoriasIngresoEl.addEventListener(
+      'click',
+      manejarClickListaCategorias
+    );
   }
   if (listaCategoriasGastoEl) {
-    listaCategoriasGastoEl.addEventListener('click', manejarClickListaCategorias);
+    listaCategoriasGastoEl.addEventListener(
+      'click',
+      manejarClickListaCategorias
+    );
   }
 
   if (tablaBody) {
@@ -1096,34 +1243,34 @@ function configurarEventos() {
     selectFiltroPeriodo.addEventListener('change', manejarCambioFiltroPeriodo);
   }
 
-  // NUEVO: cuando cambia Ingreso/Gasto, recargamos categorías del modal
-  if (radiosTipoMovimiento && radiosTipoMovimiento.length) {
-    radiosTipoMovimiento.forEach(function (radio) {
-      radio.addEventListener('change', function () {
-        renderizarCategoriasSelect(null);
-      });
-    });
-  }
   // Controles del timeline
   if (selectTimelinePeriodo) {
-    selectTimelinePeriodo.addEventListener('change', refrescarTimelineDesdeFiltros);
+    selectTimelinePeriodo.addEventListener(
+      'change',
+      refrescarTimelineDesdeFiltros
+    );
   }
   if (chkTimelineIngresos) {
-    chkTimelineIngresos.addEventListener('change', refrescarTimelineDesdeFiltros);
+    chkTimelineIngresos.addEventListener(
+      'change',
+      refrescarTimelineDesdeFiltros
+    );
   }
   if (chkTimelineGastos) {
-    chkTimelineGastos.addEventListener('change', refrescarTimelineDesdeFiltros);
+    chkTimelineGastos.addEventListener(
+      'change',
+      refrescarTimelineDesdeFiltros
+    );
   }
   if (chkTimelineBalance) {
-    chkTimelineBalance.addEventListener('change', refrescarTimelineDesdeFiltros);
+    chkTimelineBalance.addEventListener(
+      'change',
+      refrescarTimelineDesdeFiltros
+    );
   }
-
 }
 
-
 function inicializarMaterialize() {
-  // Inicializamos componentes de Materialize de forma defensiva. Si uno falla,
-  // capturamos el error y continuamos para no dejar otros componentes sin iniciar.
   try {
     if (window.M && M.Modal) {
       const modalElems = document.querySelectorAll('.modal');
@@ -1152,7 +1299,6 @@ function inicializarMaterialize() {
       const sidenavElems = document.querySelectorAll('.sidenav');
       if (sidenavElems && sidenavElems.length) {
         const sidenavInstances = M.Sidenav.init(sidenavElems);
-        // Puede devolver un array o una instancia según el input; normalizamos
         if (Array.isArray(sidenavInstances) && sidenavInstances.length > 0) {
           sidenavInstance = sidenavInstances[0];
         } else if (sidenavInstances) {
@@ -1191,6 +1337,27 @@ function inicializarMaterialize() {
   }
 }
 
+// ====================
+//   Categorías
+// ====================
+
+function renderizarCategoriasManager() {
+  if (!listaCategoriasIngresoEl || !listaCategoriasGastoEl) return;
+
+  listaCategoriasIngresoEl.innerHTML = '';
+  listaCategoriasGastoEl.innerHTML = '';
+
+  (categorias.INGRESO || []).forEach(function (cat) {
+    const li = crearItemCategoria('INGRESO', cat);
+    listaCategoriasIngresoEl.appendChild(li);
+  });
+
+  (categorias.GASTO || []).forEach(function (cat) {
+    const li = crearItemCategoria('GASTO', cat);
+    listaCategoriasGastoEl.appendChild(li);
+  });
+}
+
 function manejarSubmitCategoria(event) {
   event.preventDefault();
   if (!selectCategoriaTipo || !inputCategoriaNombre) return;
@@ -1202,10 +1369,14 @@ function manejarSubmitCategoria(event) {
     return;
   }
 
-  const nombre = nombreRaw; // podés normalizar, pero mantenemos simple
+  const nombre = nombreRaw;
 
   if ((categorias[tipo] || []).includes(nombre)) {
-    mostrarMensaje('Esa categoría ya existe en ' + (tipo === 'INGRESO' ? 'Ingresos' : 'Gastos') + '.');
+    mostrarMensaje(
+      'Esa categoría ya existe en ' +
+        (tipo === 'INGRESO' ? 'Ingresos' : 'Gastos') +
+        '.'
+    );
     return;
   }
 
@@ -1217,12 +1388,14 @@ function manejarSubmitCategoria(event) {
   renderizarCategoriasManager();
   renderizarCategoriasSelect(null);
   renderizarOpcionesFiltroCategoria();
+  renderizarCalendario();
 
   inputCategoriaNombre.value = '';
   if (window.M && M.updateTextFields) M.updateTextFields();
 
   mostrarMensaje('Categoría agregada.');
 }
+
 function manejarClickListaCategorias(event) {
   const btnRenombrar = event.target.closest('.btn-renombrar-categoria');
   const btnEliminar = event.target.closest('.btn-eliminar-categoria');
@@ -1241,8 +1414,12 @@ function manejarClickListaCategorias(event) {
     return;
   }
 }
+
 function renombrarCategoria(tipo, nombreActual) {
-  const nuevoNombre = window.prompt('Nuevo nombre para la categoría:', nombreActual);
+  const nuevoNombre = window.prompt(
+    'Nuevo nombre para la categoría:',
+    nombreActual
+  );
   if (!nuevoNombre) return;
 
   const nombreTrim = nuevoNombre.trim();
@@ -1267,13 +1444,17 @@ function renombrarCategoria(tipo, nombreActual) {
     return mov;
   });
 
-  // Icono: movemos el valor
-  const iconoActual = categoriaIconos[tipo] && categoriaIconos[tipo][nombreActual];
+  // Icono
+  const iconoActual =
+    categoriaIconos[tipo] && categoriaIconos[tipo][nombreActual];
   if (!categoriaIconos[tipo]) categoriaIconos[tipo] = {};
   if (iconoActual) {
     categoriaIconos[tipo][nombreTrim] = iconoActual;
   } else {
-    categoriaIconos[tipo][nombreTrim] = obtenerIconoCategoria(tipo, nombreTrim);
+    categoriaIconos[tipo][nombreTrim] = obtenerIconoCategoria(
+      tipo,
+      nombreTrim
+    );
   }
   delete categoriaIconos[tipo][nombreActual];
 
@@ -1286,9 +1467,11 @@ function renombrarCategoria(tipo, nombreActual) {
   renderizarOpcionesFiltroCategoria();
   renderizarMovimientos();
   actualizarResumen();
+  renderizarCalendario();
 
   mostrarMensaje('Categoría renombrada.');
 }
+
 function eliminarCategoria(tipo, nombre) {
   const enUso = movimientos.filter(function (mov) {
     return mov.categoria === nombre && mov.tipo === tipo;
@@ -1296,8 +1479,11 @@ function eliminarCategoria(tipo, nombre) {
 
   if (enUso.length > 0) {
     const confirma = window.confirm(
-      'La categoría "' + nombre + '" se usa en ' + enUso.length +
-      ' movimiento(s). Si la eliminas, no podrás filtrar por ella.\n\n¿Deseas continuar?'
+      'La categoría "' +
+        nombre +
+        '" se usa en ' +
+        enUso.length +
+        ' movimiento(s). Si la eliminas, no podrás filtrar por ella.\n\n¿Deseas continuar?'
     );
     if (!confirma) return;
   }
@@ -1316,15 +1502,16 @@ function eliminarCategoria(tipo, nombre) {
   renderizarCategoriasManager();
   renderizarCategoriasSelect(null);
   renderizarOpcionesFiltroCategoria();
+  renderizarCalendario();
 
   mostrarMensaje('Categoría eliminada.');
 }
 
 // ====================
-//   Render principal
+//   Render principal tabla / selects
 // ====================
 
-function renderizarCategoriasSelect(valorSeleccionado) {
+function renderizarCategoriasSelect(valorSeleccionadoExplicito) {
   if (!selectCategoriaMovimiento) return;
 
   selectCategoriaMovimiento.innerHTML = '';
@@ -1336,13 +1523,27 @@ function renderizarCategoriasSelect(valorSeleccionado) {
         })?.value || 'INGRESO'
       : 'INGRESO';
 
-  const listaCategorias = categorias[tipoSeleccionado] || [];
+  const listaBase = categorias[tipoSeleccionado] || [];
 
-  listaCategorias.forEach(function (cat) {
+  const textoBusqueda = inputCategoriaBusqueda
+    ? inputCategoriaBusqueda.value.trim().toLowerCase()
+    : '';
+  const listaFiltrada = textoBusqueda
+    ? listaBase.filter(function (cat) {
+        return cat.toLowerCase().includes(textoBusqueda);
+      })
+    : listaBase.slice();
+
+  const seleccionActual =
+    valorSeleccionadoExplicito != null
+      ? valorSeleccionadoExplicito
+      : selectCategoriaMovimiento.value || null;
+
+  listaFiltrada.forEach(function (cat) {
     const option = document.createElement('option');
     option.value = cat;
     option.textContent = cat;
-    if (valorSeleccionado && valorSeleccionado === cat) {
+    if (seleccionActual && seleccionActual === cat) {
       option.selected = true;
     }
     selectCategoriaMovimiento.appendChild(option);
@@ -1366,7 +1567,9 @@ function renderizarOpcionesFiltroCategoria() {
 
   const todasCategorias = Array.from(
     new Set([].concat(categorias.INGRESO, categorias.GASTO))
-  ).sort();
+  )
+    .filter(Boolean)
+    .sort();
 
   todasCategorias.forEach(function (cat) {
     const option = document.createElement('option');
@@ -1390,7 +1593,7 @@ function renderizarMovimientos() {
   if (!lista.length) {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
-    td.colSpan = 6;
+    td.colSpan = 7;
     td.textContent = 'No hay movimientos para los filtros actuales.';
     td.classList.add('center-align');
     tr.appendChild(td);
@@ -1420,6 +1623,10 @@ function renderizarMovimientos() {
     }
     tr.appendChild(tdCategoria);
 
+      const tdForma = document.createElement('td');
+      tdForma.textContent = mov.formaPago || '-';
+      tr.appendChild(tdForma);
+
     const tdMonto = document.createElement('td');
     tdMonto.classList.add('left-align');
     tdMonto.textContent = simbolo + ' ' + mov.monto.toFixed(2);
@@ -1434,13 +1641,15 @@ function renderizarMovimientos() {
 
     const btnEditar = document.createElement('button');
     btnEditar.type = 'button';
-    btnEditar.className = 'btn-small waves-effect waves-light teal btn-editar';
+    btnEditar.className =
+      'btn-small waves-effect waves-light teal btn-editar';
     btnEditar.dataset.id = mov.id;
     btnEditar.textContent = 'Editar';
 
     const btnEliminar = document.createElement('button');
     btnEliminar.type = 'button';
-    btnEliminar.className = 'btn-small waves-effect waves-light red btn-eliminar';
+    btnEliminar.className =
+      'btn-small waves-effect waves-light red btn-eliminar';
     btnEliminar.dataset.id = mov.id;
     btnEliminar.textContent = 'Eliminar';
 
@@ -1474,20 +1683,12 @@ function actualizarResumen() {
   totalGastosEl.textContent = totalGastos.toFixed(2);
   totalBalanceEl.textContent = balance.toFixed(2);
 
-  const simbolo = obtenerSimboloMoneda();
-
-  // Dashboard
   renderizarDashboard();
-
-  // Calendario (usa todos los movimientos, no los filtrados)
   renderizarCalendario();
-
-  // Timeline (usa movimientos filtrados)
-  actualizarChartTimeline(lista, simbolo);
 }
 
 // ====================
-//  Dashboard / estadísticas
+//  Dashboard / fechas
 // ====================
 
 // Convierte 'YYYY-MM-DD' a Date
@@ -1515,8 +1716,18 @@ function diferenciaDiasInclusive(fechaDesde, fechaHasta) {
 
 // Nombres de meses en español
 const NOMBRES_MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre'
 ];
 
 function formatearFechaLarga(fechaStr) {
@@ -1534,7 +1745,6 @@ function formatearDiaMes(fecha) {
   return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0');
 }
 
-// Calcula estadísticas del dashboard
 function calcularEstadisticasDashboard() {
   const lista = obtenerMovimientosFiltrados();
 
@@ -1598,7 +1808,6 @@ function calcularEstadisticasDashboard() {
   return resultado;
 }
 
-// Construye la serie de balance acumulado por fecha
 function construirSerieBalancePorFecha(listaMovimientos) {
   const netoPorFecha = {};
 
@@ -1618,7 +1827,7 @@ function construirSerieBalancePorFecha(listaMovimientos) {
     netoPorFecha[mov.fecha] += mov.monto * factor;
   });
 
-  const fechas = Object.keys(netoPorFecha).sort(); // YYYY-MM-DD ordena bien
+  const fechas = Object.keys(netoPorFecha).sort();
 
   const labels = [];
   const valores = [];
@@ -1636,7 +1845,6 @@ function construirSerieBalancePorFecha(listaMovimientos) {
   };
 }
 
-// Renderiza dashboard
 function renderizarDashboard() {
   if (
     !dashboardGastoPromedioDiarioEl ||
@@ -1660,24 +1868,25 @@ function renderizarDashboard() {
   dashboardCantMovGastosEl.textContent = String(stats.cantMovGastos);
   dashboardCantMovTotalEl.textContent = String(stats.cantMovTotal);
 
-  // Gráfico de barras: Ingresos vs Gastos
   actualizarChartIngresosGastos(
     stats.totalIngresos,
     stats.totalGastos,
     simbolo
   );
 
-  // Movimientos filtrados del período
   const listaFiltrada = obtenerMovimientosFiltrados();
-
-  // Gráfico de línea: balance en el tiempo
   actualizarChartBalanceTiempo(listaFiltrada, simbolo);
-
-  // Gráfico de torta: distribución de gastos por categoría
   actualizarChartGastosPorCategoria(listaFiltrada);
+  // Actualizar gráfico de formas de pago
+  actualizarChartFormaPago(listaFiltrada);
+  // Asegurar visibilidad según configuración actual
+  setMostrarGraficoForma(!!(config && config.mostrarGraficoFormaPago));
 }
 
-// Gráfico barras Ingresos vs Gastos
+// ====================
+//  Gráficos Chart.js
+// ====================
+
 function actualizarChartIngresosGastos(totalIngresos, totalGastos, simbolo) {
   const canvas = document.getElementById('chart-bar-ingresos-gastos');
   if (!canvas || typeof Chart === 'undefined') return;
@@ -1713,7 +1922,6 @@ function actualizarChartIngresosGastos(totalIngresos, totalGastos, simbolo) {
   });
 }
 
-// Gráfico doughnut de gastos por categoría
 function actualizarChartGastosPorCategoria(listaMovimientos) {
   const canvas = document.getElementById('chart-pie-gastos-categoria');
   if (!canvas || typeof Chart === 'undefined') return;
@@ -1777,7 +1985,90 @@ function actualizarChartGastosPorCategoria(listaMovimientos) {
     }
   });
 }
-// Gráfico de línea: balance acumulado en el tiempo
+
+function actualizarChartFormaPago(listaMovimientos) {
+  const canvas = document.getElementById('chart-forma-pago');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const totalesIngreso = {};
+  const totalesGasto = {};
+
+  (listaMovimientos || []).forEach(function (mov) {
+    const forma = mov.formaPago || 'Sin forma';
+    if (mov.tipo === 'INGRESO') {
+      totalesIngreso[forma] = (totalesIngreso[forma] || 0) + mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      totalesGasto[forma] = (totalesGasto[forma] || 0) + mov.monto;
+    }
+  });
+
+  const labels = Array.from(
+    new Set([].concat(Object.keys(totalesIngreso), Object.keys(totalesGasto)))
+  ).filter(Boolean);
+
+  if (!labels.length) {
+    if (chartFormaPago) {
+      chartFormaPago.destroy();
+      chartFormaPago = null;
+    }
+    return;
+  }
+
+  const dataIngreso = labels.map(function (l) {
+    return totalesIngreso[l] || 0;
+  });
+  const dataGasto = labels.map(function (l) {
+    return totalesGasto[l] || 0;
+  });
+
+  const datasetIngreso = {
+    label: 'Ingresos (' + obtenerSimboloMoneda() + ')',
+    data: dataIngreso,
+    backgroundColor: '#16a34a'
+  };
+
+  const datasetGasto = {
+    label: 'Gastos (' + obtenerSimboloMoneda() + ')',
+    data: dataGasto,
+    backgroundColor: '#ef4444'
+  };
+
+  if (chartFormaPago) {
+    chartFormaPago.data.labels = labels;
+    chartFormaPago.data.datasets = [datasetIngreso, datasetGasto];
+    chartFormaPago.update();
+    return;
+  }
+
+  chartFormaPago = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [datasetIngreso, datasetGasto]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: false },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function setMostrarGraficoForma(visible) {
+  try {
+    const canvas = document.getElementById('chart-forma-pago');
+    if (!canvas) return;
+    const card = canvas.closest('.card');
+    if (!card) return;
+    card.style.display = visible ? '' : 'none';
+  } catch (e) {
+    console.error('Error alternando visibilidad del gráfico forma de pago:', e);
+  }
+}
+
 function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
   const canvas = document.getElementById('chart-line-balance-tiempo');
   if (!canvas || typeof Chart === 'undefined') {
@@ -1786,7 +2077,6 @@ function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
 
   const serie = construirSerieBalancePorFecha(listaMovimientos);
 
-  // Si no hay datos, destruimos el gráfico si existía y salimos
   if (!serie.labels.length) {
     if (chartBalanceTiempo) {
       chartBalanceTiempo.destroy();
@@ -1840,6 +2130,203 @@ function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
 }
 
 // ====================
+//  Timeline
+// ====================
+
+function refrescarTimelineDesdeFiltros() {
+  const lista = obtenerMovimientosFiltrados();
+  const simbolo = obtenerSimboloMoneda();
+  actualizarChartTimeline(lista, simbolo);
+}
+
+function obtenerClaveGrupoTimeline(fecha, periodo) {
+  const year = fecha.getFullYear();
+  const month = fecha.getMonth() + 1;
+
+  if (periodo === 'mes') {
+    const key = year + '-' + String(month).padStart(2, '0');
+    const label =
+      String(month).padStart(2, '0') + '/' + String(year).slice(-2);
+    return { key: key, label: label };
+  }
+
+  if (periodo === 'semana') {
+    const day = fecha.getDay(); // 0=Dom
+    const diff = day === 0 ? -6 : 1 - day; // lunes
+    const inicio = new Date(fecha);
+    inicio.setDate(fecha.getDate() + diff);
+    const key = convertirFechaADateString(inicio);
+    const label = 'Sem ' + formatearDiaMes(inicio);
+    return { key: key, label: label };
+  }
+
+  const key = convertirFechaADateString(fecha);
+  const label = formatearDiaMes(fecha);
+  return { key: key, label: label };
+}
+
+function construirGruposTimeline(listaMovimientos, periodo) {
+  const mapa = {};
+
+  listaMovimientos.forEach(function (mov) {
+    const fecha = parseFechaYYYYMMDD(mov.fecha);
+    if (!fecha) return;
+
+    const clave = obtenerClaveGrupoTimeline(fecha, periodo);
+    const key = clave.key;
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        label: clave.label,
+        ingresos: 0,
+        gastos: 0
+      };
+    }
+
+    const g = mapa[key];
+    if (mov.tipo === 'INGRESO') {
+      g.ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      g.gastos += mov.monto;
+    }
+  });
+
+  const keys = Object.keys(mapa).sort();
+  return keys.map(function (k) {
+    const g = mapa[k];
+    return {
+      label: g.label,
+      ingresos: g.ingresos,
+      gastos: g.gastos
+    };
+  });
+}
+
+function actualizarChartTimeline(listaMovimientos, simbolo) {
+  const canvas = document.getElementById('chart-timeline');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const periodo = selectTimelinePeriodo ? selectTimelinePeriodo.value : 'dia';
+  const mostrarIngresos =
+    !chkTimelineIngresos || chkTimelineIngresos.checked;
+  const mostrarGastos = !chkTimelineGastos || chkTimelineGastos.checked;
+  const mostrarBalance = !chkTimelineBalance || chkTimelineBalance.checked;
+
+  const grupos = construirGruposTimeline(listaMovimientos, periodo);
+
+  const labels = grupos.map(function (g) {
+    return g.label;
+  });
+
+  const datasets = [];
+
+  if (mostrarIngresos) {
+    datasets.push({
+      label: 'Ingresos (' + simbolo + ')',
+      data: grupos.map(function (g) {
+        return g.ingresos;
+      }),
+      borderColor: '#16a34a',
+      backgroundColor: '#16a34a',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarGastos) {
+    datasets.push({
+      label: 'Gastos (' + simbolo + ')',
+      data: grupos.map(function (g) {
+        return g.gastos;
+      }),
+      borderColor: '#ef4444',
+      backgroundColor: '#ef4444',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarBalance) {
+    datasets.push({
+      label: 'Balance (' + simbolo + ')',
+      data: grupos.map(function (g) {
+        return g.ingresos - g.gastos;
+      }),
+      borderColor: '#2563eb',
+      backgroundColor: '#2563eb',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (!labels.length || !datasets.length) {
+    if (chartTimeline) {
+      chartTimeline.destroy();
+      chartTimeline = null;
+    }
+    return;
+  }
+
+  if (chartTimeline) {
+    chartTimeline.data.labels = labels;
+    chartTimeline.data.datasets = datasets;
+    chartTimeline.update();
+    return;
+  }
+
+  chartTimeline = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ====================
+//  Índice de movimientos por día
+// ====================
+
+function construirIndiceMovimientosPorDia() {
+  const indice = {};
+
+  movimientos.forEach(function (mov) {
+    if (!mov.fecha) return;
+
+    if (!indice[mov.fecha]) {
+      indice[mov.fecha] = {
+        ingresos: 0,
+        gastos: 0,
+        balance: 0,
+        lista: []
+      };
+    }
+
+    const entry = indice[mov.fecha];
+    if (mov.tipo === 'INGRESO') {
+      entry.ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      entry.gastos += mov.monto;
+    }
+    entry.balance = entry.ingresos - entry.gastos;
+    entry.lista.push(mov);
+  });
+
+  return indice;
+}
+
+// ====================
 //  Formulario / modal
 // ====================
 
@@ -1857,12 +2344,27 @@ function limpiarFormularioMovimiento() {
     });
   }
 
+  if (inputCategoriaBusqueda) {
+    inputCategoriaBusqueda.value = '';
+  }
+
   renderizarCategoriasSelect(null);
+  limpiarErrorMovimiento();
+
+  // Reset forma de pago a la opción por defecto si existe
+  if (selectFormaPagoMovimiento) {
+    // si existe una opción 'Efectivo' la dejamos, si no dejamos la primera
+    const opciones = Array.prototype.slice.call(selectFormaPagoMovimiento.options || []);
+    const existeEfectivo = opciones.some(function (o) { return o.value === 'Efectivo'; });
+    selectFormaPagoMovimiento.value = existeEfectivo ? 'Efectivo' : (opciones[0] ? opciones[0].value : '');
+    refrescarSelectMaterialize(selectFormaPagoMovimiento);
+  }
 
   if (window.M && M.updateTextFields) {
     M.updateTextFields();
   }
 }
+
 
 function obtenerTipoSeleccionadoEnFormulario() {
   if (!radiosTipoMovimiento || !radiosTipoMovimiento.length) return 'INGRESO';
@@ -1886,21 +2388,28 @@ function manejarSubmitMovimiento(event) {
   const categoria = selectCategoriaMovimiento
     ? selectCategoriaMovimiento.value
     : '';
+  const formaPago = selectFormaPagoMovimiento
+    ? selectFormaPagoMovimiento.value || ''
+    : '';
   const nota = inputNota ? inputNota.value.trim() : '';
 
+  limpiarErrorMovimiento();
+
   if (!fecha) {
-    mostrarMensaje('La fecha es obligatoria.');
+    mostrarErrorMovimiento('La fecha es obligatoria.');
     return;
   }
 
   const monto = parseFloat(montoStr);
-  if (Number.isNaN(monto) || monto < 0) {
-    mostrarMensaje('El monto debe ser un número válido mayor o igual a 0.');
+  if (Number.isNaN(monto) || monto <= 0) {
+    mostrarErrorMovimiento(
+      'El monto debe ser un número válido mayor que 0.'
+    );
     return;
   }
 
   if (!categoria) {
-    mostrarMensaje('Selecciona una categoría.');
+    mostrarErrorMovimiento('Seleccioná una categoría.');
     return;
   }
 
@@ -1908,6 +2417,7 @@ function manejarSubmitMovimiento(event) {
     movimientoEnEdicion.fecha = fecha;
     movimientoEnEdicion.tipo = tipo;
     movimientoEnEdicion.categoria = categoria;
+    movimientoEnEdicion.formaPago = formaPago;
     movimientoEnEdicion.monto = monto;
     movimientoEnEdicion.nota = nota;
 
@@ -1922,6 +2432,7 @@ function manejarSubmitMovimiento(event) {
       fecha: fecha,
       tipo: tipo,
       categoria: categoria,
+      formaPago: formaPago,
       monto: monto,
       nota: nota
     };
@@ -1959,7 +2470,18 @@ function iniciarEdicionMovimiento(id) {
     });
   }
 
+  if (inputCategoriaBusqueda) {
+    inputCategoriaBusqueda.value = '';
+  }
+
   renderizarCategoriasSelect(mov.categoria);
+  limpiarErrorMovimiento();
+
+  // Poblar forma de pago en el modal
+  if (selectFormaPagoMovimiento) {
+    selectFormaPagoMovimiento.value = mov.formaPago || selectFormaPagoMovimiento.value || 'Efectivo';
+    refrescarSelectMaterialize(selectFormaPagoMovimiento);
+  }
 
   if (window.M && M.updateTextFields) {
     M.updateTextFields();
@@ -1999,8 +2521,8 @@ function prepararEliminacionMovimiento(id) {
   const spanNota = document.getElementById('modal-eliminar-nota');
 
   if (spanFecha) spanFecha.textContent = mov.fecha;
-  if (spanTipo) spanTipo.textContent =
-    mov.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto';
+  if (spanTipo)
+    spanTipo.textContent = mov.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto';
   if (spanCategoria) spanCategoria.textContent = mov.categoria || '-';
   if (spanMonto) spanMonto.textContent = mov.monto.toFixed(2);
   if (spanNota) spanNota.textContent = mov.nota || '';
@@ -2026,6 +2548,47 @@ function confirmarEliminacion() {
   if (modalEliminarInstance) modalEliminarInstance.close();
 
   mostrarMensaje('Movimiento eliminado.');
+}
+
+function copiarUltimoMontoPorCategoria() {
+  if (!selectCategoriaMovimiento || !inputMonto) return;
+  const categoriaSeleccionada = selectCategoriaMovimiento.value;
+  if (!categoriaSeleccionada) {
+    mostrarErrorMovimiento(
+      'Elegí una categoría para copiar el último monto.'
+    );
+    return;
+  }
+
+  const tipoFormulario = obtenerTipoSeleccionadoEnFormulario();
+
+  for (let i = movimientos.length - 1; i >= 0; i--) {
+    const mov = movimientos[i];
+    if (
+      mov.categoria === categoriaSeleccionada &&
+      mov.tipo === tipoFormulario
+    ) {
+      inputMonto.value = mov.monto.toString();
+      if (window.M && M.updateTextFields) M.updateTextFields();
+      limpiarErrorMovimiento();
+      return;
+    }
+  }
+
+  mostrarErrorMovimiento(
+    'No se encontró un monto previo para esa categoría.'
+  );
+}
+
+function manejarCambioCategoriaEnModal() {
+  if (!selectCategoriaMovimiento || !radiosTipoMovimiento) return;
+  const nombre = selectCategoriaMovimiento.value;
+  const tipoCat = obtenerTipoCategoriaPorNombre(nombre);
+  if (!tipoCat) return;
+
+  radiosTipoMovimiento.forEach(function (radio) {
+    radio.checked = radio.value === tipoCat;
+  });
 }
 
 // ====================
@@ -2107,6 +2670,10 @@ function obtenerFiltrosDesdeUI() {
     ? selectFiltroCategoria.value || 'TODAS'
     : 'TODAS';
 
+  const formaPago = selectFiltroFormaPago
+    ? selectFiltroFormaPago.value || 'TODAS'
+    : 'TODAS';
+
   const montoMinStr = inputFiltroMontoMin ? inputFiltroMontoMin.value : '';
   const montoMaxStr = inputFiltroMontoMax ? inputFiltroMontoMax.value : '';
 
@@ -2121,6 +2688,8 @@ function obtenerFiltrosDesdeUI() {
     categoria: categoria,
     montoMin: !Number.isNaN(montoMin) ? montoMin : null,
     montoMax: !Number.isNaN(montoMax) ? montoMax : null
+    ,
+    formaPago: formaPago
   };
 }
 
@@ -2138,6 +2707,7 @@ function limpiarFiltros() {
     if (selectFiltroPeriodo) M.FormSelect.init(selectFiltroPeriodo);
     if (selectFiltroTipo) M.FormSelect.init(selectFiltroTipo);
     if (selectFiltroCategoria) M.FormSelect.init(selectFiltroCategoria);
+    if (selectFiltroFormaPago) M.FormSelect.init(selectFiltroFormaPago);
   }
 
   renderizarMovimientos();
@@ -2157,339 +2727,11 @@ function obtenerMovimientosFiltrados() {
     if (f.tipo && f.tipo !== 'TODOS' && mov.tipo !== f.tipo) return false;
     if (f.categoria && f.categoria !== 'TODAS' && mov.categoria !== f.categoria)
       return false;
+    if (f.formaPago && f.formaPago !== 'TODAS' && mov.formaPago !== f.formaPago)
+      return false;
     if (typeof f.montoMin === 'number' && mov.monto < f.montoMin) return false;
     if (typeof f.montoMax === 'number' && mov.monto > f.montoMax) return false;
     return true;
-  });
-}
-function refrescarTimelineDesdeFiltros() {
-  const lista = obtenerMovimientosFiltrados();
-  const simbolo = obtenerSimboloMoneda();
-  actualizarChartTimeline(lista, simbolo);
-}
-function obtenerClaveGrupoTimeline(fecha, periodo) {
-  const year = fecha.getFullYear();
-  const month = fecha.getMonth() + 1;
-
-  if (periodo === 'mes') {
-    const key = year + '-' + String(month).padStart(2, '0');
-    const label = String(month).padStart(2, '0') + '/' + String(year).slice(-2);
-    return { key: key, label: label };
-  }
-
-  if (periodo === 'semana') {
-    const day = fecha.getDay(); // 0=Dom
-    const diff = day === 0 ? -6 : 1 - day; // lunes
-    const inicio = new Date(fecha);
-    inicio.setDate(fecha.getDate() + diff);
-    const key = convertirFechaADateString(inicio);
-    const label = 'Sem ' + formatearDiaMes(inicio);
-    return { key: key, label: label };
-  }
-
-  // Día
-  const key = convertirFechaADateString(fecha);
-  const label = formatearDiaMes(fecha);
-  return { key: key, label: label };
-}
-
-function construirGruposTimeline(listaMovimientos, periodo) {
-  const mapa = {};
-
-  listaMovimientos.forEach(function (mov) {
-    const fecha = parseFechaYYYYMMDD(mov.fecha);
-    if (!fecha) return;
-
-    const clave = obtenerClaveGrupoTimeline(fecha, periodo);
-    const key = clave.key;
-
-    if (!mapa[key]) {
-      mapa[key] = {
-        label: clave.label,
-        ingresos: 0,
-        gastos: 0
-      };
-    }
-
-    const g = mapa[key];
-    if (mov.tipo === 'INGRESO') {
-      g.ingresos += mov.monto;
-    } else if (mov.tipo === 'GASTO') {
-      g.gastos += mov.monto;
-    }
-  });
-
-  const keys = Object.keys(mapa).sort(); // yyyy-mm-dd / yyyy-mm
-  return keys.map(function (k) {
-    const g = mapa[k];
-    return {
-      label: g.label,
-      ingresos: g.ingresos,
-      gastos: g.gastos
-    };
-  });
-}
-function actualizarChartTimeline(listaMovimientos, simbolo) {
-  const canvas = document.getElementById('chart-timeline');
-  if (!canvas || typeof Chart === 'undefined') return;
-
-  const periodo = selectTimelinePeriodo ? selectTimelinePeriodo.value : 'dia';
-  const mostrarIngresos =
-    !chkTimelineIngresos || chkTimelineIngresos.checked;
-  const mostrarGastos =
-    !chkTimelineGastos || chkTimelineGastos.checked;
-  const mostrarBalance =
-    !chkTimelineBalance || chkTimelineBalance.checked;
-
-  const grupos = construirGruposTimeline(listaMovimientos, periodo);
-
-  const labels = grupos.map(function (g) {
-    return g.label;
-  });
-
-  const datasets = [];
-
-  if (mostrarIngresos) {
-    datasets.push({
-      label: 'Ingresos (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.ingresos; }),
-      borderColor: '#16a34a',
-      backgroundColor: '#16a34a',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (mostrarGastos) {
-    datasets.push({
-      label: 'Gastos (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.gastos; }),
-      borderColor: '#ef4444',
-      backgroundColor: '#ef4444',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (mostrarBalance) {
-    datasets.push({
-      label: 'Balance (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.ingresos - g.gastos; }),
-      borderColor: '#2563eb',
-      backgroundColor: '#2563eb',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (!labels.length || !datasets.length) {
-    if (chartTimeline) {
-      chartTimeline.destroy();
-      chartTimeline = null;
-    }
-    return;
-  }
-
-  if (chartTimeline) {
-    chartTimeline.data.labels = labels;
-    chartTimeline.data.datasets = datasets;
-    chartTimeline.update();
-    return;
-  }
-
-  chartTimeline = new Chart(canvas.getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false
-      },
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
-}
-
-// Construye un índice fecha -> { ingresos, gastos, balance, lista[] }
-function construirIndiceMovimientosPorDia() {
-  const indice = {};
-
-  movimientos.forEach(function (mov) {
-    if (!mov.fecha) return;
-
-    if (!indice[mov.fecha]) {
-      indice[mov.fecha] = {
-        ingresos: 0,
-        gastos: 0,
-        balance: 0,
-        lista: []
-      };
-    }
-
-    const entry = indice[mov.fecha];
-    if (mov.tipo === 'INGRESO') {
-      entry.ingresos += mov.monto;
-    } else if (mov.tipo === 'GASTO') {
-      entry.gastos += mov.monto;
-    }
-    entry.balance = entry.ingresos - entry.gastos;
-    entry.lista.push(mov);
-  });
-
-  return indice;
-}
-function renderizarCalendario() {
-  if (!calendarGridEl || !calendarMonthLabelEl) return;
-
-  const indice = construirIndiceMovimientosPorDia();
-
-  const base =
-    calendarCurrentDate instanceof Date ? new Date(calendarCurrentDate) : new Date();
-  const year = base.getFullYear();
-  const month = base.getMonth(); // 0-11
-
-  // Etiqueta "Marzo 2025"
-  const mesNombre = NOMBRES_MESES[month] || '';
-  calendarMonthLabelEl.textContent = mesNombre + ' ' + year;
-
-  calendarGridEl.innerHTML = '';
-
-  // Primer día del mes
-  const firstOfMonth = new Date(year, month, 1);
-  const dayOfWeek = firstOfMonth.getDay(); // 0=Dom ... 6=Sab
-  const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // queremos lunes=0
-  const startDate = new Date(year, month, 1 - offset);
-
-  const hoyStr = obtenerFechaHoyYYYYMMDD();
-  if (!calendarSelectedDate) {
-    calendarSelectedDate = hoyStr;
-  }
-
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    const iso = convertirFechaADateString(d);
-
-    const infoDia = indice[iso] || {
-      ingresos: 0,
-      gastos: 0,
-      balance: 0,
-      lista: []
-    };
-
-    const dayEl = document.createElement('div');
-    dayEl.className = 'calendar-day';
-    dayEl.dataset.date = iso;
-
-    // Colorear según balance del día
-    if (infoDia.balance > 0) {
-      dayEl.classList.add('calendar-day-positive');
-    } else if (infoDia.balance < 0) {
-      dayEl.classList.add('calendar-day-negative');
-    }
-
-    if (d.getMonth() !== month) {
-      dayEl.classList.add('calendar-day-outside');
-    }
-    if (iso === hoyStr) {
-      dayEl.classList.add('calendar-day-today');
-    }
-    if (iso === calendarSelectedDate) {
-      dayEl.classList.add('calendar-day-selected');
-    }
-
-    const numEl = document.createElement('div');
-    numEl.className = 'calendar-day-number';
-    numEl.textContent = d.getDate();
-    dayEl.appendChild(numEl);
-
-    const amountEl = document.createElement('div');
-    amountEl.className = 'calendar-day-amount';
-
-    if (infoDia.ingresos !== 0 || infoDia.gastos !== 0) {
-      const simbolo = obtenerSimboloMoneda();
-      const balance = infoDia.balance;
-      const prefijo = balance > 0 ? '+' : balance < 0 ? '-' : '';
-      amountEl.textContent =
-        prefijo + simbolo + ' ' + Math.abs(balance).toFixed(0);
-    } else {
-      amountEl.textContent = '';
-    }
-
-    dayEl.appendChild(amountEl);
-
-    dayEl.addEventListener('click', function () {
-      calendarSelectedDate = iso;
-      actualizarDetalleCalendario(iso, indice);
-      renderizarCalendario(); // re-dibuja selección
-    });
-
-    calendarGridEl.appendChild(dayEl);
-  }
-
-  actualizarDetalleCalendario(calendarSelectedDate, indice);
-}
-
-function actualizarDetalleCalendario(fechaStr, indice) {
-  if (
-    !calendarDayDateLabelEl ||
-    !calendarDayTotalIngresosEl ||
-    !calendarDayTotalGastosEl ||
-    !calendarDayTotalBalanceEl ||
-    !calendarMovimientosDiaEl ||
-    !calendarMovimientosEmptyEl
-  ) {
-    return;
-  }
-
-  const map = indice || construirIndiceMovimientosPorDia();
-  const infoDia =
-    (fechaStr && map && map[fechaStr]) || {
-      ingresos: 0,
-      gastos: 0,
-      balance: 0,
-      lista: []
-    };
-
-  calendarDayDateLabelEl.textContent = fechaStr
-    ? formatearFechaLarga(fechaStr)
-    : 'Sin seleccionar';
-
-  calendarDayTotalIngresosEl.textContent = infoDia.ingresos.toFixed(2);
-  calendarDayTotalGastosEl.textContent = infoDia.gastos.toFixed(2);
-  calendarDayTotalBalanceEl.textContent = infoDia.balance.toFixed(2);
-
-  calendarMovimientosDiaEl.innerHTML = '';
-
-  if (!infoDia.lista.length) {
-    calendarMovimientosEmptyEl.style.display = 'block';
-    return;
-  }
-
-  calendarMovimientosEmptyEl.style.display = 'none';
-
-  const simbolo = obtenerSimboloMoneda();
-
-  infoDia.lista.forEach(function (mov) {
-    const li = document.createElement('li');
-    li.className = 'collection-item';
-
-    const tipoStr = mov.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto';
-    const montoStr = simbolo + ' ' + mov.monto.toFixed(2);
-    const categoriaStr = mov.categoria || '-';
-    const notaStr = mov.nota ? ' · ' + mov.nota : '';
-
-    li.textContent =
-      tipoStr + ' · ' + categoriaStr + ' · ' + montoStr + notaStr;
-
-    calendarMovimientosDiaEl.appendChild(li);
   });
 }
 
@@ -2611,16 +2853,352 @@ function convertirFechaADateString(fecha) {
 }
 
 // ====================
+//   Calendario (mes / semana / año)
+// ====================
+
+function renderizarCalendario() {
+  if (!calendarGridEl || !calendarMonthLabelEl) return;
+
+  const indice = construirIndiceMovimientosPorDia();
+
+  const base =
+    calendarCurrentDate instanceof Date
+      ? new Date(calendarCurrentDate)
+      : new Date();
+  const year = base.getFullYear();
+  const month = base.getMonth(); // 0-11
+
+  if (!calendarSelectedDate) {
+    calendarSelectedDate = obtenerFechaHoyYYYYMMDD();
+  }
+
+  const vista =
+    selectCalendarViewMode && selectCalendarViewMode.value
+      ? selectCalendarViewMode.value
+      : (config && config.calendarioVistaPreferida) ||
+        DEFAULT_CONFIG.calendarioVistaPreferida;
+
+  // Mostrar/ocultar nombres de días
+  if (calendarWeekdaysRowEl) {
+    if (vista === 'anio') {
+      calendarWeekdaysRowEl.style.display = 'none';
+    } else {
+      calendarWeekdaysRowEl.style.display = 'grid';
+    }
+  }
+
+  if (vista === 'anio') {
+    renderizarCalendarioAnual(indice, year);
+  } else if (vista === 'semana') {
+    renderizarCalendarioSemanal(indice);
+  } else {
+    renderizarCalendarioMensual(indice, year, month);
+  }
+
+  actualizarDetalleCalendario(calendarSelectedDate, indice);
+}
+
+function renderizarCalendarioMensual(indice, year, month) {
+  calendarGridEl.innerHTML = '';
+  calendarGridEl.classList.remove('calendar-grid-year');
+
+  const mesNombre = NOMBRES_MESES[month] || '';
+  calendarMonthLabelEl.textContent = mesNombre + ' ' + year;
+
+  const firstOfMonth = new Date(year, month, 1);
+  const dayOfWeek = firstOfMonth.getDay(); // 0=Dom ... 6=Sab
+  const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // lunes=0
+  const startDate = new Date(year, month, 1 - offset);
+
+  const hoyStr = obtenerFechaHoyYYYYMMDD();
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const iso = convertirFechaADateString(d);
+
+    const infoDia =
+      indice[iso] || { ingresos: 0, gastos: 0, balance: 0, lista: [] };
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.dataset.date = iso;
+
+    if (infoDia.balance > 0) {
+      dayEl.classList.add('calendar-day-positive');
+    } else if (infoDia.balance < 0) {
+      dayEl.classList.add('calendar-day-negative');
+    }
+
+    if (d.getMonth() !== month) {
+      dayEl.classList.add('calendar-day-outside');
+    }
+    if (iso === hoyStr) {
+      dayEl.classList.add('calendar-day-today');
+    }
+    if (iso === calendarSelectedDate) {
+      dayEl.classList.add('calendar-day-selected');
+    }
+
+    const numEl = document.createElement('div');
+    numEl.className = 'calendar-day-number';
+    numEl.textContent = d.getDate();
+    dayEl.appendChild(numEl);
+
+    const amountEl = document.createElement('div');
+    amountEl.className = 'calendar-day-amount';
+
+    if (infoDia.ingresos !== 0 || infoDia.gastos !== 0) {
+      const simbolo = obtenerSimboloMoneda();
+      const balance = infoDia.balance;
+      const prefijo = balance > 0 ? '+' : balance < 0 ? '-' : '';
+      amountEl.textContent =
+        prefijo + simbolo + ' ' + Math.abs(balance).toFixed(0);
+    } else {
+      amountEl.textContent = '';
+    }
+
+    dayEl.appendChild(amountEl);
+
+    dayEl.addEventListener('click', function () {
+      calendarSelectedDate = iso;
+      calendarCurrentDate = new Date(d);
+      renderizarCalendario();
+    });
+
+    calendarGridEl.appendChild(dayEl);
+  }
+}
+
+function renderizarCalendarioSemanal(indice) {
+  calendarGridEl.innerHTML = '';
+  calendarGridEl.classList.remove('calendar-grid-year');
+
+  let referencia = calendarSelectedDate
+    ? parseFechaYYYYMMDD(calendarSelectedDate)
+    : new Date();
+  if (!(referencia instanceof Date) || isNaN(referencia.getTime())) {
+    referencia = new Date();
+  }
+
+  const day = referencia.getDay(); // 0=Dom
+  const diff = day === 0 ? -6 : 1 - day; // lunes
+  const lunes = new Date(referencia);
+  lunes.setDate(referencia.getDate() + diff);
+
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+
+  calendarMonthLabelEl.textContent =
+    'Semana ' + formatearDiaMes(lunes) + ' - ' + formatearDiaMes(domingo);
+
+  const hoyStr = obtenerFechaHoyYYYYMMDD();
+  const simbolo = obtenerSimboloMoneda();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    const iso = convertirFechaADateString(d);
+
+    const infoDia =
+      indice[iso] || { ingresos: 0, gastos: 0, balance: 0, lista: [] };
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.dataset.date = iso;
+
+    if (infoDia.balance > 0) {
+      dayEl.classList.add('calendar-day-positive');
+    } else if (infoDia.balance < 0) {
+      dayEl.classList.add('calendar-day-negative');
+    }
+
+    if (iso === hoyStr) {
+      dayEl.classList.add('calendar-day-today');
+    }
+    if (iso === calendarSelectedDate) {
+      dayEl.classList.add('calendar-day-selected');
+    }
+
+    const numEl = document.createElement('div');
+    numEl.className = 'calendar-day-number';
+    numEl.textContent = d.getDate();
+    dayEl.appendChild(numEl);
+
+    const amountEl = document.createElement('div');
+    amountEl.className = 'calendar-day-amount';
+
+    if (infoDia.ingresos !== 0 || infoDia.gastos !== 0) {
+      const balance = infoDia.balance;
+      const prefijo = balance > 0 ? '+' : balance < 0 ? '-' : '';
+      amountEl.textContent =
+        prefijo + simbolo + ' ' + Math.abs(balance).toFixed(0);
+    } else {
+      amountEl.textContent = '';
+    }
+
+    dayEl.appendChild(amountEl);
+
+    dayEl.addEventListener('click', function () {
+      calendarSelectedDate = iso;
+      calendarCurrentDate = new Date(d);
+      renderizarCalendario();
+    });
+
+    calendarGridEl.appendChild(dayEl);
+  }
+}
+
+function renderizarCalendarioAnual(indice, year) {
+  calendarGridEl.innerHTML = '';
+  calendarGridEl.classList.add('calendar-grid-year');
+
+  calendarMonthLabelEl.textContent = 'Año ' + year;
+
+  const simbolo = obtenerSimboloMoneda();
+  const totalesPorMes = [];
+  for (let m = 0; m < 12; m++) {
+    totalesPorMes[m] = { ingresos: 0, gastos: 0 };
+  }
+
+  Object.keys(indice).forEach(function (fechaStr) {
+    const d = parseFechaYYYYMMDD(fechaStr);
+    if (!d || d.getFullYear() !== year) return;
+    const mes = d.getMonth();
+    const info = indice[fechaStr];
+    totalesPorMes[mes].ingresos += info.ingresos;
+    totalesPorMes[mes].gastos += info.gastos;
+  });
+
+  const base =
+    calendarCurrentDate instanceof Date
+      ? new Date(calendarCurrentDate)
+      : new Date();
+  const mesActual = base.getMonth();
+
+  for (let m = 0; m < 12; m++) {
+    const totalIng = totalesPorMes[m].ingresos;
+    const totalGas = totalesPorMes[m].gastos;
+    const balance = totalIng - totalGas;
+
+    const cell = document.createElement('div');
+    cell.className = 'calendar-month-cell';
+
+    if (balance > 0) {
+      cell.classList.add('calendar-month-positive');
+    } else if (balance < 0) {
+      cell.classList.add('calendar-month-negative');
+    }
+
+    if (m === mesActual) {
+      cell.classList.add('calendar-month-current');
+    }
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'calendar-month-name';
+    nameEl.textContent = NOMBRES_MESES[m].slice(0, 3);
+    cell.appendChild(nameEl);
+
+    const amountEl = document.createElement('div');
+    amountEl.className = 'calendar-month-amount';
+
+    if (balance !== 0) {
+      const prefijo = balance > 0 ? '+' : '-';
+      amountEl.textContent =
+        prefijo + simbolo + ' ' + Math.abs(balance).toFixed(0);
+    } else {
+      amountEl.textContent = simbolo + ' 0';
+    }
+    cell.appendChild(amountEl);
+
+    cell.addEventListener('click', function () {
+      const nuevaFecha = new Date(year, m, 1);
+      calendarCurrentDate = nuevaFecha;
+      calendarSelectedDate = convertirFechaADateString(nuevaFecha);
+
+      if (selectCalendarViewMode) {
+        selectCalendarViewMode.value = 'mes';
+        if (config) {
+          config.calendarioVistaPreferida = 'mes';
+          guardarConfigEnStorage(config);
+        }
+        refrescarSelectMaterialize(selectCalendarViewMode);
+      }
+
+      renderizarCalendario();
+    });
+
+    calendarGridEl.appendChild(cell);
+  }
+}
+
+function actualizarDetalleCalendario(fechaStr, indice) {
+  if (
+    !calendarDayDateLabelEl ||
+    !calendarDayTotalIngresosEl ||
+    !calendarDayTotalGastosEl ||
+    !calendarDayTotalBalanceEl ||
+    !calendarMovimientosDiaEl ||
+    !calendarMovimientosEmptyEl
+  ) {
+    return;
+  }
+
+  const map = indice || construirIndiceMovimientosPorDia();
+  const infoDia =
+    (fechaStr && map && map[fechaStr]) || {
+      ingresos: 0,
+      gastos: 0,
+      balance: 0,
+      lista: []
+    };
+
+  calendarDayDateLabelEl.textContent = fechaStr
+    ? formatearFechaLarga(fechaStr)
+    : 'Sin seleccionar';
+
+  calendarDayTotalIngresosEl.textContent = infoDia.ingresos.toFixed(2);
+  calendarDayTotalGastosEl.textContent = infoDia.gastos.toFixed(2);
+  calendarDayTotalBalanceEl.textContent = infoDia.balance.toFixed(2);
+
+  calendarMovimientosDiaEl.innerHTML = '';
+
+  if (!infoDia.lista.length) {
+    calendarMovimientosEmptyEl.style.display = 'block';
+    return;
+  }
+
+  calendarMovimientosEmptyEl.style.display = 'none';
+
+  const simbolo = obtenerSimboloMoneda();
+
+  infoDia.lista.forEach(function (mov) {
+    const li = document.createElement('li');
+    li.className = 'collection-item';
+
+    const tipoStr = mov.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto';
+    const montoStr = simbolo + ' ' + mov.monto.toFixed(2);
+    const categoriaStr = mov.categoria || '-';
+    const notaStr = mov.nota ? ' · ' + mov.nota : '';
+
+    li.textContent =
+      tipoStr + ' · ' + categoriaStr + ' · ' + montoStr + notaStr;
+
+    calendarMovimientosDiaEl.appendChild(li);
+  });
+}
+
+// ====================
 //   Backup / export
 // ====================
 
 function exportarBackupJSON() {
   const data = {
-    version: 2,
+    version: 3,
     fecha_exportacion: new Date().toISOString(),
     movimientos: movimientos,
     categorias: categorias,
-    categoriaIconos: categoriaIconos, 
+    categoriaIconos: categoriaIconos,
     configuracion: config
   };
 
@@ -2662,7 +3240,8 @@ function manejarImportarBackup(event) {
             typeof mov.monto === 'number'
               ? mov.monto
               : parseFloat(mov.monto) || 0,
-          nota: mov.nota || ''
+          nota: mov.nota || '',
+          formaPago: mov.formaPago || ''
         };
       });
 
@@ -2692,6 +3271,13 @@ function manejarImportarBackup(event) {
       renderizarMovimientos();
       actualizarResumen();
 
+      if (selectCalendarViewMode && config) {
+        selectCalendarViewMode.value =
+          config.calendarioVistaPreferida ||
+          DEFAULT_CONFIG.calendarioVistaPreferida;
+        refrescarSelectMaterialize(selectCalendarViewMode);
+      }
+
       setFiltrosVisible(config.abrirFiltrosAlInicio);
       setTablaVisible(config.abrirTablaAlInicio);
       setDashboardVisible(
@@ -2699,7 +3285,6 @@ function manejarImportarBackup(event) {
           ? config.abrirDashboardAlInicio
           : true
       );
-
       setCalendarioVisible(
         typeof config.abrirCalendarioAlInicio === 'boolean'
           ? config.abrirCalendarioAlInicio
@@ -2744,13 +3329,15 @@ function exportarCSV() {
   }
 
   const lineas = [];
-  lineas.push('fecha,tipo,categoria,monto,nota');
+  // Añadimos columna forma de pago
+  lineas.push('fecha,tipo,categoria,forma,monto,nota');
 
   lista.forEach(function (mov) {
     const fecha = mov.fecha;
     const tipo = mov.tipo;
     const categoria = (mov.categoria || '').replace(/"/g, '""');
     const nota = (mov.nota || '').replace(/"/g, '""');
+    const forma = (mov.formaPago || '').replace(/"/g, '""');
     const monto = mov.monto.toFixed(2);
 
     const linea =
@@ -2760,6 +3347,9 @@ function exportarCSV() {
       ',' +
       '"' +
       categoria +
+      '",' +
+      '"' +
+      forma +
       '",' +
       monto +
       ',' +
@@ -2777,3 +3367,201 @@ function exportarCSV() {
   descargarArchivo(nombre, csv, 'text/csv;charset=utf-8;');
   mostrarMensaje('CSV exportado.');
 }
+// ============================================
+//  FIX V2.4: TIMELINE + CALENDARIO MULTI-VISTA
+//  (pegar este bloque al final de app.js)
+// ============================================
+
+// --- Timeline ---
+
+function refrescarTimelineDesdeFiltros() {
+  if (typeof obtenerMovimientosFiltrados !== 'function') return;
+  const lista = obtenerMovimientosFiltrados();
+  const simbolo = typeof obtenerSimboloMoneda === 'function'
+    ? obtenerSimboloMoneda()
+    : '$';
+  actualizarChartTimeline(lista, simbolo);
+}
+
+function obtenerClaveGrupoTimeline(fecha, periodo) {
+  const year = fecha.getFullYear();
+  const month = fecha.getMonth() + 1;
+
+  if (periodo === 'mes') {
+    const key = year + '-' + String(month).padStart(2, '0');
+    const label =
+      String(month).padStart(2, '0') + '/' + String(year).slice(-2);
+    return { key: key, label: label };
+  }
+
+  if (periodo === 'semana') {
+    // lunes como inicio de semana
+    const day = fecha.getDay(); // 0=Dom
+    const diff = day === 0 ? -6 : 1 - day;
+    const inicio = new Date(fecha);
+    inicio.setDate(fecha.getDate() + diff);
+    const key = convertirFechaADateString(inicio);
+    const label = 'Sem ' + formatearDiaMes(inicio);
+    return { key: key, label: label };
+  }
+
+  // día
+  const key = convertirFechaADateString(fecha);
+  const label = formatearDiaMes(fecha);
+  return { key: key, label: label };
+}
+
+function construirGruposTimeline(listaMovimientos, periodo) {
+  const mapa = {};
+
+  listaMovimientos.forEach(function (mov) {
+    if (!mov.fecha) return;
+    const fecha = parseFechaYYYYMMDD(mov.fecha);
+    if (!fecha) return;
+
+    const clave = obtenerClaveGrupoTimeline(fecha, periodo);
+    const key = clave.key;
+    if (!mapa[key]) {
+      mapa[key] = {
+        label: clave.label,
+        ingresos: 0,
+        gastos: 0
+      };
+    }
+
+    if (mov.tipo === 'INGRESO') {
+      mapa[key].ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      mapa[key].gastos += mov.monto;
+    }
+  });
+
+  const keys = Object.keys(mapa).sort();
+  return keys.map(function (k) {
+    const g = mapa[k];
+    return {
+      label: g.label,
+      ingresos: g.ingresos,
+      gastos: g.gastos
+    };
+  });
+}
+
+function actualizarChartTimeline(listaMovimientos, simbolo) {
+  const canvas = document.getElementById('chart-timeline');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const periodo = selectTimelinePeriodo
+    ? selectTimelinePeriodo.value || 'dia'
+    : 'dia';
+  const mostrarIngresos =
+    !chkTimelineIngresos || chkTimelineIngresos.checked;
+  const mostrarGastos =
+    !chkTimelineGastos || chkTimelineGastos.checked;
+  const mostrarBalance =
+    !chkTimelineBalance || chkTimelineBalance.checked;
+
+  const grupos = construirGruposTimeline(listaMovimientos, periodo);
+  const labels = grupos.map(function (g) { return g.label; });
+
+  const datasets = [];
+
+  if (mostrarIngresos) {
+    datasets.push({
+      label: 'Ingresos (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.ingresos; }),
+      borderColor: '#16a34a',
+      backgroundColor: '#16a34a',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarGastos) {
+    datasets.push({
+      label: 'Gastos (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.gastos; }),
+      borderColor: '#ef4444',
+      backgroundColor: '#ef4444',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarBalance) {
+    datasets.push({
+      label: 'Balance (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.ingresos - g.gastos; }),
+      borderColor: '#2563eb',
+      backgroundColor: '#2563eb',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (!labels.length || !datasets.length) {
+    if (typeof chartTimeline !== 'undefined' && chartTimeline) {
+      chartTimeline.destroy();
+      chartTimeline = null;
+    }
+    return;
+  }
+
+  if (typeof chartTimeline !== 'undefined' && chartTimeline) {
+    chartTimeline.data.labels = labels;
+    chartTimeline.data.datasets = datasets;
+    chartTimeline.update();
+    return;
+  }
+
+  // si no existe aún, lo creamos
+  chartTimeline = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: labels, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+
+// --- Índice de movimientos por día (sobrescritura segura) ---
+
+function construirIndiceMovimientosPorDia() {
+  const indice = {};
+
+  (movimientos || []).forEach(function (mov) {
+    if (!mov.fecha) return;
+    if (!indice[mov.fecha]) {
+      indice[mov.fecha] = {
+        ingresos: 0,
+        gastos: 0,
+        balance: 0,
+        lista: []
+      };
+    }
+
+    const entry = indice[mov.fecha];
+    if (mov.tipo === 'INGRESO') {
+      entry.ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      entry.gastos += mov.monto;
+    }
+    entry.balance = entry.ingresos - entry.gastos;
+    entry.lista.push(mov);
+  });
+
+  return indice;
+}
+
+// Llamado extra al cargar todo para evitar timeline / calendario vacíos
+window.addEventListener('load', function () {
+  try {
+    refrescarTimelineDesdeFiltros();
+    renderizarCalendario();
+  } catch (e) {
+    console.error('Error inicializando timeline/calendario V2.4:', e);
+  }
+});

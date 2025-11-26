@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/jpeg" href="img/logo.jfif">
+  <link rel="icon" type="image/jpeg" href="img/logo.jpg">
 
   <!-- Materialize CSS -->
   <link rel="stylesheet"
@@ -21,7 +21,7 @@
 <body>
 
   <!-- Navbar -->
-  <nav class="blue darken-3 no-print">
+  <nav class="no-print">
     <div class="nav-wrapper container nav-layout">
       <!-- Izquierda: botón menú -->
       <a href="#!"
@@ -36,7 +36,7 @@
 
       <!-- Derecha: logo -->
       <div class="nav-layout__right">
-        <img src="img/logo.jfif"
+        <img src="img/logo.jpg"
              alt="Mis Finanzas"
              class="nav-logo-img">
       </div>
@@ -61,14 +61,14 @@
       </a>
     </li>
 
-    <!-- NUEVO: Calendario -->
+    <!-- Calendario -->
     <li>
       <a href="#section-calendario" id="nav-calendario">
         <i class="material-icons">event</i>Calendario
       </a>
     </li>
 
-    <!-- NUEVO: Timeline -->
+    <!-- Timeline -->
     <li>
       <a href="#section-timeline" id="nav-timeline">
         <i class="material-icons">timeline</i>Timeline
@@ -155,7 +155,7 @@
     <section id="section-dashboard" class="section">
       <h5 class="section-title">Dashboard</h5>
 
-      <!-- Métricas rápidas (unificadas en una sola card) -->
+      <!-- Métricas rápidas -->
       <div class="row">
         <div class="col s12">
           <div class="card dashboard-card">
@@ -226,9 +226,23 @@
           </div>
         </div>
       </div>
+
+      <!-- Gráfico: Ingresos/Gastos por forma de pago -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card dashboard-card">
+            <div class="card-content">
+              <span class="card-title">Ingresos / Gastos por forma de pago</span>
+              <div class="dashboard-chart-container">
+                <canvas id="chart-forma-pago"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Calendario mensual -->
+    <!-- Calendario -->
     <section id="section-calendario" class="section no-print hide">
       <h5 class="section-title">Calendario</h5>
 
@@ -239,7 +253,7 @@
             <!-- Columna izquierda: mes + grilla -->
             <div class="col s12 m7 calendar-month-wrapper">
 
-              <!-- Header del mes -->
+              <!-- Header del mes / año / semana -->
               <div class="calendar-header">
                 <button id="btn-calendar-prev"
                         type="button"
@@ -266,6 +280,18 @@
                 </button>
               </div>
 
+              <!-- Selector de vista -->
+              <div class="calendar-view-row">
+                <div class="input-field col s12">
+                  <select id="calendar-view-mode">
+                    <option value="mes" selected>Mensual</option>
+                    <option value="semana">Semanal</option>
+                    <option value="anio">Anual</option>
+                  </select>
+                  <label for="calendar-view-mode">Vista</label>
+                </div>
+              </div>
+
               <!-- Cabecera días de la semana -->
               <div class="calendar-weekdays">
                 <div class="calendar-weekday">Lu</div>
@@ -277,9 +303,9 @@
                 <div class="calendar-weekday">Do</div>
               </div>
 
-              <!-- Grilla del mes -->
+              <!-- Grilla (mes, semana o año) -->
               <div id="calendar-grid" class="calendar-grid">
-                <!-- Las celdas .calendar-day se generan por JS -->
+                <!-- Se genera por JS -->
               </div>
             </div>
 
@@ -494,6 +520,18 @@
             </div>
 
             <div class="input-field col s6 m3">
+              <select id="filtro-forma-pago">
+                <option value="TODAS" selected>Todas</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Debito">Débito</option>
+                <option value="Credito">Crédito</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Crypto">Crypto</option>
+              </select>
+              <label for="filtro-forma-pago">Forma de pago</label>
+            </div>
+
+            <div class="input-field col s6 m3">
               <input id="filtro-monto-min" type="number" step="0.01" min="0">
               <label for="filtro-monto-min">Monto mínimo</label>
             </div>
@@ -537,6 +575,7 @@
               <th>Fecha</th>
               <th>Tipo</th>
               <th>Categoría</th>
+              <th>Forma</th>
               <th class="left-align">Monto</th>
               <th>Nota</th>
               <th class="center-align no-print">Acciones</th>
@@ -556,7 +595,7 @@
       <span class="footer-app-name">Mis Finanzas</span>
       <span class="footer-divider">·</span>
       <span class="footer-copy">© 2025</span>
-      <span class="footer-version">v2.3</span>
+      <span class="footer-version">v2.4</span>
     </div>
   </footer>
 
@@ -600,19 +639,78 @@
           <div class="input-field col s12 m4">
             <input id="monto" type="number" step="0.01" min="0" required>
             <label for="monto" class="active">Monto</label>
+
+            <!-- Botones de monto rápido -->
+            <div id="monto-quick-actions" class="monto-quick-actions no-print">
+              <button type="button"
+                      class="btn-small btn-monto-rapido"
+                      data-action="add"
+                      data-value="1000">
+                +1.000
+              </button>
+              <button type="button"
+                      class="btn-small btn-monto-rapido"
+                      data-action="add"
+                      data-value="5000">
+                +5.000
+              </button>
+              <button type="button"
+                      class="btn-small btn-monto-rapido"
+                      data-action="add"
+                      data-value="10000">
+                +10.000
+              </button>
+              <button type="button"
+                      class="btn-small btn-monto-rapido"
+                      data-action="copiar-ultimo">
+                Copiar último
+              </button>
+            </div>
           </div>
           <div class="input-field col s12 m4">
             <select id="categoria" required>
               <!-- Opciones generadas por JS -->
             </select>
             <label for="categoria">Categoría</label>
+
+            <!-- Búsqueda de categoría -->
+            <div class="categoria-search-wrapper">
+              <input id="categoria-busqueda"
+                     type="text"
+                     placeholder="Buscar categoría...">
+            </div>
           </div>
+        </div>
+
+        <div class="row">
+          <div class="input-field col s12 m4">
+            <select id="forma-pago">
+              <option value="Efectivo" selected>Efectivo</option>
+              <option value="Debito">Débito</option>
+              <option value="Credito">Crédito</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Crypto">Crypto</option>
+            </select>
+            <label for="forma-pago">Forma de pago</label>
+          </div>
+
+          <div class="input-field col s12 m8">
+            <!-- espacio reservado para futuras opciones -->
+          </div>
+
         </div>
 
         <div class="row">
           <div class="input-field col s12">
             <textarea id="nota" class="materialize-textarea" rows="2"></textarea>
             <label for="nota">Nota (opcional)</label>
+          </div>
+        </div>
+
+        <!-- Mensajes de validación dentro del modal -->
+        <div class="row">
+          <div class="col s12">
+            <p id="movimiento-error" class="movimiento-error-text"></p>
           </div>
         </div>
 
@@ -694,6 +792,18 @@
         </div>
       </div>
 
+      <!-- Vista de calendario preferida -->
+      <div class="row">
+        <div class="input-field col s12 m4">
+          <select id="config-calendario-vista">
+            <option value="mes" selected>Mensual</option>
+            <option value="semana">Semanal</option>
+            <option value="anio">Anual</option>
+          </select>
+          <label for="config-calendario-vista">Vista de calendario</label>
+        </div>
+      </div>
+
       <!-- Qué abrir al iniciar -->
       <div class="row">
         <div class="col s12 m3">
@@ -722,7 +832,7 @@
         </div>
       </div>
 
-      <!-- NUEVO: abrir calendario / timeline al iniciar -->
+      <!-- Abrir calendario / timeline al iniciar -->
       <div class="row">
         <div class="col s12 m3">
           <label>
@@ -743,6 +853,12 @@
           <label>
             <input id="config-mostrar-iconos" type="checkbox" class="filled-in">
             <span>Mostrar iconos en categorías</span>
+          </label>
+        </div>
+        <div class="col s12 m4">
+          <label>
+            <input id="config-mostrar-grafico-forma" type="checkbox" class="filled-in">
+            <span>Mostrar gráfico "Formas de pago"</span>
           </label>
         </div>
       </div>

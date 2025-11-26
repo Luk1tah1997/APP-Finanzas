@@ -93,6 +93,17 @@ nav .nav-wrapper.nav-layout {
   font-size: 1.2rem;
   font-weight: 600;
   color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+@media only screen and (max-width: 600px) {
+  .nav-layout__title {
+    font-size: 1rem;
+    margin: 0 8px;
+  }
 }
 
 /* logo a la derecha */
@@ -100,6 +111,7 @@ nav .nav-wrapper.nav-layout {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 /* Logo redondo MF */
@@ -122,6 +134,7 @@ nav .nav-wrapper.nav-layout {
 body.dark-mode .logo-badge {
   background: #26a69a;
 }
+
 /* =========================================================
    Secciones y títulos
    ========================================================= */
@@ -154,7 +167,7 @@ nav {
 .nav-logo-img {
   width: 36px;
   height: 36px;
-  border-radius: 12px;     /* podés subirlo a 50% si lo querés redondo */
+  border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
@@ -164,6 +177,16 @@ nav .nav-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 12px;
+}
+
+@media only screen and (max-width: 600px) {
+  nav .nav-wrapper {
+    padding: 0 8px;
+  }
 }
 
 /* Anulamos posicionamiento absoluto de Materialize */
@@ -331,6 +354,41 @@ nav .sidenav-trigger {
   color: var(--color-text-muted);
 }
 
+/* Botones de monto rápido */
+.monto-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.monto-quick-actions .btn-monto-rapido {
+  font-size: 0.75rem;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+}
+
+/* Error dentro del modal */
+.movimiento-error-text {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-expense);
+  min-height: 1.1rem;
+}
+
+/* Búsqueda de categoría */
+.categoria-search-wrapper {
+  margin-top: 6px;
+}
+
+.categoria-search-wrapper input {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-subtle);
+}
+
 /* =========================================================
    Tabla de movimientos
    ========================================================= */
@@ -363,7 +421,6 @@ table.highlight tbody tr:hover {
    Sidenav (menú lateral)
    ========================================================= */
 
-/* Que el li crezca con el contenido */
 .sidenav {
   background-color: var(--color-surface);
   box-shadow: var(--shadow-soft);
@@ -373,25 +430,22 @@ table.highlight tbody tr:hover {
   height: auto;
 }
 
-/* Ítems con varias líneas sin romper ellayout */
 .sidenav li > a {
   display: flex;
   align-items: center;
-  height: auto !important;      /* pisamos alto fijo de Materialize */
-  line-height: 1.4 !important;  /* línea normal */
+  height: auto !important;
+  line-height: 1.4 !important;
   padding: 12px 18px;
   white-space: normal;
   font-size: 0.95rem;
   color: var(--color-text);
 }
 
-/* Separar icono del texto */
 .sidenav li > a i.material-icons {
   margin-right: 16px;
   flex-shrink: 0;
 }
 
-/* Separador más suave */
 .sidenav .divider {
   margin: 4px 0;
   background-color: rgba(15, 23, 42, 0.06);
@@ -405,7 +459,6 @@ table.highlight tbody tr:hover {
   padding: 12px 16px;
 }
 
-/* Bloque resumen compacto */
 .dashboard-summary {
   margin-bottom: 0.5rem;
 }
@@ -431,7 +484,6 @@ table.highlight tbody tr:hover {
   }
 }
 
-/* Contenedor de gráficos */
 .dashboard-chart-container {
   position: relative;
   width: 100%;
@@ -457,7 +509,6 @@ body.dark-mode main {
   background-color: var(--color-bg);
 }
 
-/* Navbar en oscuro */
 body.dark-mode nav {
   background-color: #020617 !important;
 }
@@ -467,31 +518,28 @@ body.dark-mode nav a {
   color: #ffffff !important;
 }
 
-/* Sidenav */
 body.dark-mode .sidenav {
   background-color: #020617;
-  color: #e5e7eb; /* texto claro dentro del sidenav */
+  color: #e5e7eb;
 }
 
 body.dark-mode .sidenav a {
-  color: #e5e7eb; /* links del menú en claro */
+  color: #e5e7eb;
 }
 
 body.dark-mode .sidenav a i.material-icons {
-  color: #e5e7eb; /* iconos del menú en claro */
+  color: #e5e7eb;
 }
 
 body.dark-mode .sidenav .divider {
   background-color: rgba(148, 163, 184, 0.25);
 }
 
-/* Cards y contenedores */
 body.dark-mode .card {
   background-color: #020617 !important;
   color: var(--color-text);
 }
 
-/* Resumen en oscuro: cada card con tinte propio */
 body.dark-mode .resumen-card.card-ingresos {
   background: linear-gradient(135deg, rgba(22, 163, 74, 0.33), #020617);
   border-color: rgba(22, 163, 74, 0.65);
@@ -507,7 +555,6 @@ body.dark-mode .resumen-card.card-balance {
   border-color: rgba(37, 99, 235, 0.65);
 }
 
-/* Tabla */
 body.dark-mode table {
   background-color: #020617;
   color: var(--color-text);
@@ -526,13 +573,11 @@ body.dark-mode table.highlight > tbody > tr:hover {
   background-color: rgba(38, 166, 154, 0.18);
 }
 
-/* Collections (modal eliminar) */
 body.dark-mode .collection-item {
   background-color: #020617;
   color: var(--color-text);
 }
 
-/* Modal */
 body.dark-mode .modal {
   background-color: #020617;
   color: var(--color-text);
@@ -542,7 +587,6 @@ body.dark-mode .modal .modal-footer {
   background-color: #020617;
 }
 
-/* Inputs y labels */
 body.dark-mode .input-field input,
 body.dark-mode .input-field textarea {
   color: var(--color-text);
@@ -552,25 +596,26 @@ body.dark-mode .input-field label {
   color: var(--color-text-muted);
 }
 
-/* Selects (texto y dropdown) */
 body.dark-mode .select-dropdown,
 body.dark-mode .dropdown-content li > span {
   color: var(--color-text);
   background-color: #020617;
 }
 
-/* Botones planos en oscuro */
 body.dark-mode .btn-flat {
   color: var(--color-text);
 }
 
-/* Dashboard canvas fondo transparente */
 body.dark-mode .dashboard-card canvas {
   background-color: transparent;
 }
 
 body.dark-mode .dashboard-metric-label {
   color: var(--color-text-muted);
+}
+
+body.dark-mode .app-footer {
+  background-color: var(--color-surface);
 }
 
 /* =========================================================
@@ -601,8 +646,7 @@ body.dark-mode .dashboard-metric-label {
 }
 
 /* =========================================================
-   Helpers para futuras categorías con iconos
-   (para la próxima iteración)
+   Helpers categorías con iconos
    ========================================================= */
 
 .category-badge {
@@ -618,6 +662,7 @@ body.dark-mode .dashboard-metric-label {
 .category-badge i {
   font-size: 1rem;
 }
+
 /* =========================================================
    Footer
    ========================================================= */
@@ -651,10 +696,6 @@ body.dark-mode .dashboard-metric-label {
   opacity: 0.85;
 }
 
-/* En dark mode se adapta solo por las variables, pero reforzamos un poco */
-body.dark-mode .app-footer {
-  background-color: var(--color-surface);
-}
 /* =========================================================
    Calendario
    ========================================================= */
@@ -663,8 +704,34 @@ body.dark-mode .app-footer {
   padding: 16px 20px;
 }
 
+/* Usamos flex en vez de floats para que las columnas no se pisen */
 .calendar-layout.row {
   margin-bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* anulamos floats de las columnas dentro del calendario */
+.calendar-layout.row .col {
+  float: none;
+}
+
+/* anchos responsivos de las dos columnas */
+.calendar-month-wrapper,
+.calendar-sidebar {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media only screen and (min-width: 601px) {
+  .calendar-month-wrapper {
+    flex: 0 0 60%;
+    max-width: 60%;
+  }
+  .calendar-sidebar {
+    flex: 0 0 40%;
+    max-width: 40%;
+  }
 }
 
 .calendar-month-wrapper {
@@ -689,11 +756,25 @@ body.dark-mode .app-footer {
   font-weight: 600;
 }
 
+/* selector de vista */
+.calendar-view-row {
+  margin: 0 0 0.75rem 0;
+}
+
+.calendar-view-row .input-field {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* grillas */
 .calendar-weekdays,
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .calendar-weekday {
@@ -706,14 +787,122 @@ body.dark-mode .app-footer {
   margin-top: 4px;
 }
 
-/* Cuando más adelante generemos las celdas del mes */
+/* vista anual cambia columnas */
+.calendar-grid.calendar-grid-year {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* celdas de día */
 .calendar-day {
-  min-height: 40px;
-  padding: 4px;
-  border-radius: 8px;
+  min-height: 56px;
+  padding: 6px 4px;
+  border-radius: 10px;
   font-size: 0.8rem;
   text-align: center;
   cursor: pointer;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-subtle);
+}
+
+.calendar-day:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  transform: translateY(-2px);
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.calendar-day-amount {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  display: block;
+}
+
+.calendar-day-outside {
+  opacity: 0.4;
+}
+
+.calendar-day-today {
+  border: 1px solid var(--color-primary);
+}
+
+.calendar-day-selected {
+  background-color: rgba(38, 166, 154, 0.15);
+  border-color: var(--color-primary);
+  border-width: 1.5px;
+}
+
+/* Estados de día según balance */
+.calendar-day-positive .calendar-day-number,
+.calendar-day-positive .calendar-day-amount {
+  color: var(--color-income);
+}
+
+.calendar-day-negative .calendar-day-number,
+.calendar-day-negative .calendar-day-amount {
+  color: var(--color-expense);
+}
+
+.calendar-day-positive {
+  background-color: rgba(22, 163, 74, 0.08);
+  border: 1.5px solid rgba(22, 163, 74, 0.6);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.12);
+}
+
+.calendar-day-positive:hover {
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);
+}
+
+.calendar-day-negative {
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1.5px solid rgba(239, 68, 68, 0.6);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12);
+}
+
+.calendar-day-negative:hover {
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+}
+
+/* celdas de mes (vista anual) */
+.calendar-month-cell {
+  padding: 8px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.8rem;
+}
+
+.calendar-month-name {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.calendar-month-amount {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.calendar-month-positive .calendar-month-name,
+.calendar-month-positive .calendar-month-amount {
+  color: var(--color-income);
+}
+
+.calendar-month-negative .calendar-month-name,
+.calendar-month-negative .calendar-month-amount {
+  color: var(--color-expense);
+}
+
+.calendar-month-current {
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 /* =========================================================
@@ -759,45 +948,6 @@ body.dark-mode .app-footer {
   position: relative;
   width: 100%;
   height: 260px;
-}
-.calendar-day-number {
-  font-weight: 500;
-}
-
-.calendar-day-amount {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-top: 2px;
-}
-
-.calendar-day-outside {
-  opacity: 0.4;
-}
-
-.calendar-day-today {
-  border: 1px solid var(--color-primary);
-}
-
-.calendar-day-selected {
-  background-color: var(--color-primary-soft);
-}
-/* Estados de día según balance */
-
-.calendar-day-positive .calendar-day-number,
-.calendar-day-positive .calendar-day-amount {
-  color: var(--color-income);
-}
-
-.calendar-day-negative .calendar-day-number,
-.calendar-day-negative .calendar-day-amount {
-  color: var(--color-expense);
-}
-.calendar-day-positive {
-  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.4);
-}
-
-.calendar-day-negative {
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4);
 }
 
 /* =========================================================

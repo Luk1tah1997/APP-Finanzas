@@ -953,3 +953,69 @@ body.dark-mode .app-footer {
 /* =========================================================
    Fin de css/styles.css
    ========================================================= */
+
+/* =========================================================
+   Responsive adjustments (mobile & desktop polish)
+   - Prevent mobile auto-zoom on inputs by ensuring readable font-size
+   - Tweak paddings / title width / FAB position for narrow viewports
+   - Reduce chart heights on small screens
+ ========================================================= */
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* Global container padding to avoid edge collisions on very small screens */
+.container {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media only screen and (max-width: 600px) {
+  /* Navbar */
+  nav .nav-wrapper.container {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .nav-layout__title {
+    font-size: 1rem;
+    max-width: calc(100% - 96px);
+  }
+
+  .nav-logo-img { width: 30px; height: 30px; }
+
+  /* Prevent iOS/Android auto-zoom when focusing inputs */
+  input, select, textarea, .categoria-search-wrapper input {
+    font-size: 16px;
+  }
+
+  /* FAB should not overlap on very small screens */
+  .fixed-action-btn {
+    right: 1rem;
+    bottom: 1.2rem;
+  }
+
+  /* Slightly smaller charts on mobile */
+  .dashboard-chart-container,
+  .timeline-chart-container {
+    height: 200px;
+  }
+
+  /* Calendar tweaks */
+  .calendar-grid .calendar-day { min-height: 48px; padding: 4px; }
+  .calendar-weekday { font-size: 0.7rem; }
+  .calendar-month-wrapper,
+  .calendar-sidebar { flex-basis: 100%; max-width: 100%; }
+
+  /* Sidenav width more appropriate on small devices */
+  .sidenav { width: 260px; }
+}
+
+@media only screen and (max-width: 360px) {
+  .nav-layout__title { max-width: calc(100% - 80px); font-size: 0.95rem; }
+  .fixed-action-btn .btn-floating { transform: scale(0.95); }
+}
+
+@media only screen and (min-width: 1201px) {
+  /* Desktop: slightly larger chart heights */
+  .dashboard-chart-container { height: 300px; }
+}

@@ -5,6 +5,9 @@
   <title>Mis Finanzas - MVP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="img/logo-mf.svg" sizes="any">
+
   <!-- Materialize CSS -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -19,31 +22,39 @@
 
   <!-- Navbar -->
   <nav class="blue darken-3 no-print">
-    <div class="nav-wrapper container">
+    <div class="nav-wrapper container nav-layout">
+      <!-- Izquierda: botón menú -->
       <a href="#!"
-        data-target="sidenav-main"
-        class="sidenav-trigger show-on-large">
+        data-target="slide-out"
+        class="sidenav-trigger show-on-large nav-layout__left">
         <i class="material-icons">menu</i>
       </a>
-      <a href="#!" class="brand-logo">Mis Finanzas</a>
+
+      <!-- Centro: título -->
+      <span class="nav-layout__title">Mis Finanzas</span>
+
+      <!-- Derecha: logo -->
+      <div class="nav-layout__right">
+        <span class="logo-badge">MF</span>
+      </div>
     </div>
   </nav>
 
   <!-- Menú lateral -->
-  <ul id="sidenav-main" class="sidenav">
-    <li>
-      <a href="#!" id="nav-nuevo-mov">
-        <i class="material-icons">add</i>Nuevo movimiento
-      </a>
-    </li>
+  <ul id="slide-out" class="sidenav">
     <li>
       <a href="#!" id="nav-toggle-filtros">
-        <i class="material-icons">filter_list</i>Mostrar / ocultar filtros
+        <i class="material-icons">filter_list</i>Filtros
       </a>
     </li>
     <li>
       <a href="#!" id="nav-toggle-tabla">
-        <i class="material-icons">list</i>Mostrar / ocultar movimientos
+        <i class="material-icons">list</i>Movimientos
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-dashboard">
+        <i class="material-icons">insert_chart</i>Dashboard
       </a>
     </li>
     <li><div class="divider"></div></li>
@@ -117,13 +128,77 @@
       </div>
     </section>
 
+    <!-- Dashboard -->
+    <section id="section-dashboard" class="section">
+      <h5 class="section-title">Dashboard</h5>
+
+      <!-- Métricas rápidas (unificadas en una sola card) -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card dashboard-card">
+            <div class="card-content">
+              <div class="row dashboard-summary">
+                <div class="col s12 m4 dashboard-summary-item">
+                  <span class="dashboard-metric-label">Gasto promedio diario</span>
+                  <div class="dashboard-metric-value" id="dashboard-gasto-promedio-diario">-</div>
+                </div>
+                <div class="col s12 m4 dashboard-summary-item">
+                  <span class="dashboard-metric-label">Días con gasto</span>
+                  <div class="dashboard-metric-value" id="dashboard-dias-con-gasto">-</div>
+                </div>
+                <div class="col s12 m4 dashboard-summary-item">
+                  <span class="dashboard-metric-label">Cantidad de movimientos</span>
+                  <div class="dashboard-metric-value">
+                    <span>Ing: <span id="dashboard-cant-mov-ingresos">0</span></span>
+                    &nbsp;·&nbsp;
+                    <span>Gas: <span id="dashboard-cant-mov-gastos">0</span></span>
+                    &nbsp;·&nbsp;
+                    <span>Tot: <span id="dashboard-cant-mov-total">0</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de barras Ingresos vs Gastos -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card dashboard-card">
+            <div class="card-content">
+              <span class="card-title">Ingresos vs Gastos</span>
+              <div class="dashboard-chart-container">
+                <canvas id="chart-bar-ingresos-gastos"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de torta: distribución de gastos -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card dashboard-card">
+            <div class="card-content">
+              <span class="card-title">Distribución de gastos por categoría</span>
+              <div class="dashboard-chart-container">
+                <canvas id="chart-pie-gastos-categoria"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Filtros (inicia minimizado) -->
     <section id="section-filtros" class="section no-print hide">
       <h5 class="section-title">Filtros</h5>
       <div class="card">
         <div class="card-content">
           <div class="row">
-            <div class="input-field col s12 m6">
+
+            <div class="input-field col s12 m4">
               <select id="filtro-periodo">
                 <option value="mes-actual" selected>Mes actual</option>
                 <option value="semana-actual">Semana actual</option>
@@ -134,12 +209,12 @@
               <label for="filtro-periodo">Período rápido</label>
             </div>
 
-            <div class="input-field col s6 m3">
+            <div class="input-field col s6 m4">
               <input id="filtro-fecha-desde" type="date">
               <label for="filtro-fecha-desde" class="active">Desde</label>
             </div>
 
-            <div class="input-field col s6 m3">
+            <div class="input-field col s6 m4">
               <input id="filtro-fecha-hasta" type="date">
               <label for="filtro-fecha-hasta" class="active">Hasta</label>
             </div>
@@ -164,56 +239,72 @@
 
             <div class="input-field col s6 m3">
               <input id="filtro-monto-min" type="number" step="0.01" min="0">
-              <label for="filtro-monto-min">Monto mín.</label>
+              <label for="filtro-monto-min">Monto mínimo</label>
             </div>
 
             <div class="input-field col s6 m3">
               <input id="filtro-monto-max" type="number" step="0.01" min="0">
-              <label for="filtro-monto-max">Monto máx.</label>
+              <label for="filtro-monto-max">Monto máximo</label>
             </div>
           </div>
 
           <div class="row">
-            <div class="col s12 right-align">
+            <div class="col s12 m6">
               <button id="btn-aplicar-filtros"
-                      class="btn waves-effect waves-light">
+                      class="btn waves-effect waves-light teal btn-full-width"
+                      type="button">
                 Aplicar filtros
                 <i class="material-icons right">filter_list</i>
               </button>
+            </div>
+            <div class="col s12 m6">
               <button id="btn-limpiar-filtros"
-                      class="btn-flat waves-effect">
-                Limpiar
+                      class="btn-flat waves-effect btn-full-width"
+                      type="button">
+                Limpiar filtros
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </section>
 
-    <!-- Tabla de movimientos (inicia minimizada) -->
-    <section id="section-tabla" class="section hide">
+    <!-- Tabla de movimientos -->
+    <section id="section-tabla" class="section">
       <h5 class="section-title">Movimientos</h5>
-      <div class="table-wrapper">
-        <table class="highlight">
-          <thead>
+      <div class="card">
+        <div class="card-content table-wrapper">
+          <table class="highlight responsive-table">
+            <thead>
             <tr>
               <th>Fecha</th>
               <th>Tipo</th>
               <th>Categoría</th>
-              <th>Monto</th>
+              <th class="right-align">Monto</th>
               <th>Nota</th>
-              <th class="no-print">Acciones</th>
+              <th class="center-align no-print">Acciones</th>
             </tr>
-          </thead>
-          <tbody id="tabla-movimientos-body">
+            </thead>
+            <tbody id="tabla-movimientos-body">
             <!-- Filas generadas por JS -->
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
-  </main>
+    </main>
 
-  <!-- Botón flotante: nuevo movimiento -->
+    <footer class="app-footer no-print">
+      <div class="container">
+        <span class="footer-app-name">Mis Finanzas</span>
+        <span class="footer-divider">·</span>
+        <span class="footer-copy">© 2025</span>
+        <span class="footer-version">v2.1</span>
+      </div>
+    </footer>
+
+  <!-- Botón flotante para nuevo movimiento -->
   <div class="fixed-action-btn no-print">
     <a id="btn-fab-nuevo-mov"
        class="btn-floating btn-large teal">
@@ -221,103 +312,99 @@
     </a>
   </div>
 
-  <!-- Modal: Alta / edición de movimiento -->
+  <!-- Modal de nuevo/editar movimiento -->
   <div id="modal-movimiento" class="modal">
     <div class="modal-content">
       <h5 id="modal-movimiento-titulo">Nuevo movimiento</h5>
       <form id="form-movimiento">
-        <div class="row">
-          <div class="input-field col s12 m4">
-            <input id="fecha" type="date" required>
-            <label for="fecha" class="active">Fecha</label>
-          </div>
 
-          <div class="input-field col s12 m4">
-            <p class="label-radio">Tipo</p>
+        <div class="row">
+          <div class="col s12">
+            <p class="label-radio">Tipo de movimiento</p>
             <p>
               <label>
-                <input name="tipo" type="radio" value="INGRESO">
+                <input class="with-gap" name="tipo" type="radio" value="INGRESO" checked>
                 <span>Ingreso</span>
               </label>
             </p>
             <p>
               <label>
-                <input name="tipo" type="radio" value="GASTO">
+                <input class="with-gap" name="tipo" type="radio" value="GASTO">
                 <span>Gasto</span>
               </label>
             </p>
           </div>
+        </div>
 
+        <div class="row">
+          <div class="input-field col s12 m4">
+            <input id="fecha" type="date" required>
+            <label for="fecha" class="active">Fecha</label>
+          </div>
+          <div class="input-field col s12 m4">
+            <input id="monto" type="number" step="0.01" min="0" required>
+            <label for="monto" class="active">Monto</label>
+          </div>
           <div class="input-field col s12 m4">
             <select id="categoria" required>
-              <option value="" disabled selected>Elige una categoría</option>
+              <!-- Opciones generadas por JS -->
             </select>
             <label for="categoria">Categoría</label>
           </div>
         </div>
 
         <div class="row">
-          <div class="input-field col s12 m4">
-            <input id="monto" type="number" step="0.01" min="0" required>
-            <label for="monto">Monto</label>
-          </div>
-          <div class="input-field col s12 m8">
-            <input id="nota" type="text" maxlength="120">
+          <div class="input-field col s12">
+            <textarea id="nota" class="materialize-textarea" rows="2"></textarea>
             <label for="nota">Nota (opcional)</label>
           </div>
         </div>
 
         <div class="row">
           <div class="col s12 right-align">
-            <button type="button"
-                    class="btn-flat waves-effect modal-close">
-              Cancelar
-            </button>
             <button id="btn-guardar-movimiento"
-                    class="btn waves-effect waves-light"
+                    class="btn waves-effect waves-light teal"
                     type="submit">
-              Agregar movimiento
-              <i class="material-icons right">add</i>
+              Guardar
+              <i class="material-icons right">save</i>
             </button>
           </div>
         </div>
+
       </form>
     </div>
   </div>
 
-  <!-- Modal: Confirmar eliminación -->
+  <!-- Modal confirmar eliminación -->
   <div id="modal-eliminar" class="modal">
     <div class="modal-content">
-      <h5>Eliminar movimiento</h5>
+      <h5>Confirmar eliminación</h5>
       <p>¿Seguro que deseas eliminar este movimiento?</p>
       <ul class="collection">
         <li class="collection-item">
-          <strong>Fecha:</strong>
-          <span id="modal-eliminar-fecha"></span>
+          <strong>Fecha:</strong> <span id="modal-eliminar-fecha">-</span>
         </li>
         <li class="collection-item">
-          <strong>Tipo:</strong>
-          <span id="modal-eliminar-tipo"></span>
+          <strong>Tipo:</strong> <span id="modal-eliminar-tipo">-</span>
         </li>
         <li class="collection-item">
-          <strong>Categoría:</strong>
-          <span id="modal-eliminar-categoria"></span>
+          <strong>Categoría:</strong> <span id="modal-eliminar-categoria">-</span>
         </li>
         <li class="collection-item">
           <strong>Monto:</strong>
           <span id="modal-eliminar-moneda">$</span>
-          <span id="modal-eliminar-monto"></span>
+          <span id="modal-eliminar-monto">0.00</span>
         </li>
         <li class="collection-item">
-          <strong>Nota:</strong>
-          <span id="modal-eliminar-nota"></span>
+          <strong>Nota:</strong> <span id="modal-eliminar-nota">-</span>
         </li>
       </ul>
     </div>
     <div class="modal-footer">
-      <button class="btn-flat waves-effect modal-close">
+      <a href="#!"
+         class="modal-close btn-flat">
         Cancelar
-      </button>
+      </a>
       <button id="btn-confirmar-eliminar"
               class="btn red waves-effect waves-light">
         Eliminar
@@ -325,60 +412,85 @@
     </div>
   </div>
 
-  <!-- Modal: Configuración -->
+  <!-- Modal de configuración -->
   <div id="modal-config" class="modal">
     <div class="modal-content">
       <h5>Configuración</h5>
-      <form id="form-config">
-        <div class="row">
-          <div class="input-field col s12 m6">
-            <select id="config-tema">
-              <option value="claro">Claro</option>
-              <option value="oscuro">Oscuro</option>
-            </select>
-            <label for="config-tema">Tema</label>
-          </div>
-          <div class="input-field col s12 m6">
-            <input id="config-moneda" type="text" maxlength="4">
-            <label for="config-moneda">Símbolo de moneda</label>
-          </div>
+
+      <div class="row">
+        <div class="input-field col s12 m4">
+          <select id="config-tema">
+            <option value="claro" selected>Tema claro</option>
+            <option value="oscuro">Tema oscuro</option>
+          </select>
+          <label for="config-tema">Tema</label>
         </div>
 
-        <div class="row">
-          <div class="col s12 m4">
-            <label>
-              <input id="config-abrir-tabla" type="checkbox" class="filled-in">
-              <span>Abrir movimientos al iniciar</span>
-            </label>
-          </div>
-          <div class="col s12 m4">
-            <label>
-              <input id="config-abrir-filtros" type="checkbox" class="filled-in">
-              <span>Abrir filtros al iniciar</span>
-            </label>
-          </div>
-          <div class="col s12 m4">
-            <label>
-              <input id="config-abrir-modal" type="checkbox" class="filled-in">
-              <span>Abrir "Nuevo movimiento" al iniciar</span>
-            </label>
-          </div>
+        <div class="input-field col s12 m6">
+          <select id="config-moneda">
+            <option value="$">$ - Pesos</option>
+            <option value="US$">US$ - Dólares</option>
+            <option value="€">€ - Euros</option>
+            <option value="£">£ - Libras</option>
+            <option value="¥">¥ - Yuanes</option>
+          </select>
+          <label for="config-moneda">Moneda</label>
         </div>
-      </form>
+      </div>
+
+      <div class="row">
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-tabla" type="checkbox" class="filled-in">
+            <span>Mostrar movimientos al iniciar</span>
+          </label>
+        </div>
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-filtros" type="checkbox" class="filled-in">
+            <span>Mostrar filtros al iniciar</span>
+          </label>
+        </div>
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-dashboard" type="checkbox" class="filled-in">
+            <span>Mostrar dashboard al iniciar</span>
+          </label>
+        </div>
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-modal" type="checkbox" class="filled-in">
+            <span>Abrir "Nuevo movimiento" al iniciar</span>
+          </label>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
-      <button class="btn-flat waves-effect modal-close">
+      <a href="#!"
+         class="modal-close btn-flat">
         Cancelar
-      </button>
+      </a>
       <button id="btn-guardar-config"
-              class="btn waves-effect waves-light">
+              class="btn waves-effect waves-light teal">
         Guardar
       </button>
     </div>
   </div>
 
+  <!-- Input oculto para importar backup -->
+  <input id="input-importar-backup"
+         type="file"
+         accept="application/json"
+         style="display: none;">
+
   <!-- Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js">
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- App JS -->
   <script src="js/app.js"></script>

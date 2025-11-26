@@ -1,15 +1,123 @@
-/* ===================== */
-/*   Estilos generales   */
-/* ===================== */
+/* =========================================================
+   Design tokens (fácil de portar a SASS)
+   ========================================================= */
+
+:root {
+  --color-bg: #f4f5fb;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f9fafb;
+  --color-primary: #26a69a;
+  --color-primary-soft: #d9f3ee;
+  --color-income: #16a34a;
+  --color-expense: #ef4444;
+  --color-balance: #2563eb;
+  --color-text: #1f2933;
+  --color-text-muted: #6b7280;
+  --color-border-subtle: rgba(15, 23, 42, 0.06);
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --shadow-subtle: 0 2px 8px rgba(15, 23, 42, 0.06);
+
+  --transition-fast: 150ms ease-out;
+  --transition-med: 220ms ease-out;
+}
+
+body.dark-mode {
+  --color-bg: #020617;
+  --color-surface: #020617;
+  --color-surface-subtle: #020617;
+  --color-primary: #26a69a;
+  --color-primary-soft: rgba(38, 166, 154, 0.12);
+  --color-income: #4ade80;
+  --color-expense: #f87171;
+  --color-balance: #60a5fa;
+  --color-text: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-border-subtle: rgba(148, 163, 184, 0.3);
+
+  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.85);
+  --shadow-subtle: 0 2px 10px rgba(15, 23, 42, 0.7);
+}
+
+/* =========================================================
+   Layout base
+   ========================================================= */
 
 body {
-  background-color: #f5f5f5;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 main {
-  padding-top: 1.5rem;
+  padding-top: 4.5rem;   /* deja espacio para la navbar fija */
   padding-bottom: 2.5rem;
 }
+
+/* Navbar fija y layout */
+nav.no-print {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* contenedor con 3 columnas: izquierda (menú), centro (título), derecha (logo) */
+nav .nav-wrapper.nav-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* botón menú */
+.nav-layout__left {
+  display: flex;
+  align-items: center;
+}
+
+/* título centrado */
+.nav-layout__title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* logo a la derecha */
+.nav-layout__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Logo redondo MF */
+.logo-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  background: #26a69a;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* en dark mode mantenemos el mismo color, solo nos aseguramos del contraste */
+body.dark-mode .logo-badge {
+  background: #26a69a;
+}
+/* =========================================================
+   Secciones y títulos
+   ========================================================= */
 
 .section {
   margin-top: 1.5rem;
@@ -17,44 +125,160 @@ main {
 }
 
 .section-title {
-  margin-bottom: 1rem;
-  font-weight: 500;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--color-text);
 }
 
-/* Botones principales (si en algún momento se vuelven a usar) */
-.btn-full-width {
-  width: 100%;
-  margin-bottom: 0.5rem;
+/* =========================================================
+   Navbar fija
+   ========================================================= */
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: var(--shadow-subtle);
 }
 
-.label-radio {
+nav .nav-wrapper {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Anulamos posicionamiento absoluto de Materialize */
+nav .brand-logo {
+  position: static;
+  transform: none;
+}
+
+/* Logo compuesto */
+.logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.logo-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  color: #616161;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, #26a69a, #2dd4bf);
+  color: #ffffff;
+  box-shadow: var(--shadow-soft);
 }
 
-/* Tabla horizontal en mobile */
-.table-wrapper {
-  overflow-x: auto;
+.logo-text {
+  letter-spacing: 0.02em;
+}
+
+/* Burger centrado verticalmente */
+nav .sidenav-trigger {
+  display: flex;
+  align-items: center;
+}
+
+/* =========================================================
+   Cards, superficies y tipografía
+   ========================================================= */
+
+.card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.card .card-content {
+  padding: 16px 18px;
+}
+
+.card .card-title {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
 }
 
 /* Resumen: números más grandes */
 #section-resumen .card-content p {
   font-size: 1.4rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* Colores de resumen en modo claro */
+/* Pills del resumen más marcadas */
+.resumen-card {
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+/* Colores de resumen en modo claro (más contraste) */
 .resumen-card.card-ingresos {
-  background-color: #e8f5e9;
+  background: linear-gradient(135deg, #d1fae5, #ecfdf3);
+  border-color: rgba(22, 163, 74, 0.35);
 }
 
 .resumen-card.card-gastos {
-  background-color: #ffebee;
+  background: linear-gradient(135deg, #fee2e2, #fef2f2);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .resumen-card.card-balance {
-  background-color: #e3f2fd;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+/* Símbolo de moneda un poco más suave */
+.currency-symbol {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+/* =========================================================
+   Botones / acciones
+   ========================================================= */
+
+.btn,
+.btn-large,
+.btn-small {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  text-transform: none;
+  letter-spacing: 0.03em;
+}
+
+.btn-flat {
+  border-radius: var(--radius-md);
+}
+
+/* Botones principales (full width) */
+.btn-full-width {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+/* Botón flotante + */
+.fixed-action-btn {
+  bottom: 1.8rem;
+  right: 1.5rem;
+}
+
+.fixed-action-btn .btn-floating.btn-large {
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-soft);
 }
 
 /* Acciones apiladas verticalmente en la tabla */
@@ -68,38 +292,82 @@ main {
   margin-bottom: 0;
 }
 
-/* Card de filtros un poco más pegada al título */
-#section-filtros .card {
-  margin-top: 0.5rem;
+/* =========================================================
+   Formularios
+   ========================================================= */
+
+.label-radio {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-muted);
 }
 
-@media only screen and (max-width: 600px) {
-  .card .card-title {
-    font-size: 1.2rem;
-  }
-
-  #section-resumen .card-content p {
-    font-size: 1.2rem;
-  }
+.input-field input,
+.input-field textarea {
+  border-radius: var(--radius-md);
 }
 
-/* ===================== */
-/*       Sidenav         */
-/* ===================== */
+.input-field textarea.materialize-textarea {
+  padding-top: 0.5rem;
+}
+
+/* Hint de label más suave en modo claro */
+.input-field label {
+  color: var(--color-text-muted);
+}
+
+/* =========================================================
+   Tabla de movimientos
+   ========================================================= */
+
+.table-wrapper {
+  overflow-x: auto;
+  background-color: transparent;
+}
+
+table.highlight {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+table.highlight thead {
+  background-color: var(--color-surface-subtle);
+}
+
+table.highlight th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+table.highlight tbody tr:hover {
+  background-color: rgba(38, 166, 154, 0.06);
+}
+
+/* =========================================================
+   Sidenav (menú lateral)
+   ========================================================= */
 
 /* Que el li crezca con el contenido */
+.sidenav {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
 .sidenav li {
   height: auto;
 }
 
-/* Ítems con varias líneas sin romper el layout */
+/* Ítems con varias líneas sin romper ellayout */
 .sidenav li > a {
   display: flex;
   align-items: center;
-  height: auto !important;       /* pisamos alto fijo de Materialize */
-  line-height: 1.4 !important;   /* línea normal */
-  padding: 12px 16px;
-  white-space: normal;           /* permitir salto de línea */
+  height: auto !important;      /* pisamos alto fijo de Materialize */
+  line-height: 1.4 !important;  /* línea normal */
+  padding: 12px 18px;
+  white-space: normal;
+  font-size: 0.95rem;
+  color: var(--color-text);
 }
 
 /* Separar icono del texto */
@@ -108,116 +376,187 @@ main {
   flex-shrink: 0;
 }
 
-/* ===================== */
-/*        Dark mode      */
-/* ===================== */
+/* Separador más suave */
+.sidenav .divider {
+  margin: 4px 0;
+  background-color: rgba(15, 23, 42, 0.06);
+}
+
+/* =========================================================
+   Dashboard
+   ========================================================= */
+
+.dashboard-card .card-content {
+  padding: 12px 16px;
+}
+
+/* Bloque resumen compacto */
+.dashboard-summary {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-summary-item {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-metric-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.dashboard-metric-value {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+@media only screen and (min-width: 601px) {
+  .dashboard-summary-item {
+    margin-bottom: 0;
+  }
+}
+
+/* Contenedor de gráficos */
+.dashboard-chart-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+
+@media only screen and (min-width: 601px) {
+  .dashboard-chart-container {
+    height: 260px;
+  }
+}
+
+/* =========================================================
+   Dark mode overrides
+   ========================================================= */
 
 body.dark-mode {
-  background-color: #121212;
-  color: #e0e0e0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 body.dark-mode main {
-  background-color: #121212;
+  background-color: var(--color-bg);
 }
 
-/* Navbar */
+/* Navbar en oscuro */
 body.dark-mode nav {
-  background-color: #212121 !important;
+  background-color: #020617 !important;
 }
 
-body.dark-mode nav .brand-logo,
+body.dark-mode nav .nav-layout__title,
 body.dark-mode nav a {
   color: #ffffff !important;
 }
 
 /* Sidenav */
 body.dark-mode .sidenav {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  background-color: #020617;
+  color: var(--color-text);
 }
 
 body.dark-mode .sidenav a {
-  color: #e0e0e0;
+  color: var(--color-text);
 }
 
 body.dark-mode .sidenav .divider {
-  background-color: #333333;
+  background-color: rgba(148, 163, 184, 0.25);
 }
 
 /* Cards y contenedores */
 body.dark-mode .card {
-  background-color: #1e1e1e !important;
-  color: #e0e0e0;
+  background-color: #020617 !important;
+  color: var(--color-text);
 }
 
-/* Resumen en oscuro: neutro */
-body.dark-mode .resumen-card.card-ingresos,
-body.dark-mode .resumen-card.card-gastos,
+/* Resumen en oscuro: cada card con tinte propio */
+body.dark-mode .resumen-card.card-ingresos {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.33), #020617);
+  border-color: rgba(22, 163, 74, 0.65);
+}
+
+body.dark-mode .resumen-card.card-gastos {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.33), #020617);
+  border-color: rgba(239, 68, 68, 0.65);
+}
+
 body.dark-mode .resumen-card.card-balance {
-  background-color: #1f1f1f !important;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.33), #020617);
+  border-color: rgba(37, 99, 235, 0.65);
 }
 
 /* Tabla */
 body.dark-mode table {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  background-color: #020617;
+  color: var(--color-text);
 }
 
 body.dark-mode thead {
-  background-color: #212121;
+  background-color: #020617;
 }
 
 body.dark-mode th,
 body.dark-mode td {
-  border-color: #333333;
+  border-color: rgba(148, 163, 184, 0.25);
 }
 
 body.dark-mode table.highlight > tbody > tr:hover {
-  background-color: #242424;
+  background-color: rgba(38, 166, 154, 0.18);
 }
 
 /* Collections (modal eliminar) */
 body.dark-mode .collection-item {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  background-color: #020617;
+  color: var(--color-text);
 }
 
 /* Modal */
 body.dark-mode .modal {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  background-color: #020617;
+  color: var(--color-text);
 }
 
 body.dark-mode .modal .modal-footer {
-  background-color: #181818;
+  background-color: #020617;
 }
 
 /* Inputs y labels */
 body.dark-mode .input-field input,
 body.dark-mode .input-field textarea {
-  color: #e0e0e0;
+  color: var(--color-text);
 }
 
 body.dark-mode .input-field label {
-  color: #b0bec5;
+  color: var(--color-text-muted);
 }
 
 /* Selects (texto y dropdown) */
 body.dark-mode .select-dropdown,
 body.dark-mode .dropdown-content li > span {
-  color: #e0e0e0;
-  background-color: #1e1e1e;
+  color: var(--color-text);
+  background-color: #020617;
 }
 
 /* Botones planos en oscuro */
 body.dark-mode .btn-flat {
-  color: #e0e0e0;
+  color: var(--color-text);
 }
 
-/* ===================== */
-/*     Modo impresión    */
-/* ===================== */
+/* Dashboard canvas fondo transparente */
+body.dark-mode .dashboard-card canvas {
+  background-color: transparent;
+}
+
+body.dark-mode .dashboard-metric-label {
+  color: var(--color-text-muted);
+}
+
+/* =========================================================
+   Modo impresión
+   ========================================================= */
 
 @media print {
   nav,
@@ -229,9 +568,74 @@ body.dark-mode .btn-flat {
 
   body {
     background-color: #ffffff;
+    color: #000000;
   }
 
   main {
     padding: 0;
   }
+
+  .card {
+    box-shadow: none;
+    border-radius: 0;
+  }
 }
+
+/* =========================================================
+   Helpers para futuras categorías con iconos
+   (para la próxima iteración)
+   ========================================================= */
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-subtle);
+  font-size: 0.8rem;
+}
+
+.category-badge i {
+  font-size: 1rem;
+}
+/* =========================================================
+   Footer
+   ========================================================= */
+
+.app-footer {
+  padding: 0.75rem 0 1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.75rem;
+  background-color: var(--color-surface);
+}
+
+.app-footer .container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.footer-app-name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.footer-divider {
+  opacity: 0.5;
+}
+
+.footer-version {
+  opacity: 0.85;
+}
+
+/* En dark mode se adapta solo por las variables, pero reforzamos un poco */
+body.dark-mode .app-footer {
+  background-color: var(--color-surface);
+}
+/* =========================================================
+   Fin de css/styles.css
+   ========================================================= */

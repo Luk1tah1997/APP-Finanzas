@@ -90,6 +90,7 @@ let btnOpenModalMovimiento;
 let btnGuardarMovimiento;
 let btnToggleFiltros;
 let btnToggleTabla;
+let fabNuevoMov;
 
 let btnExportarBackup;
 let btnImportarBackup;
@@ -193,6 +194,7 @@ function cacheDomElements() {
   btnGuardarMovimiento = document.getElementById('btn-guardar-movimiento');
   btnToggleFiltros = document.getElementById('btn-toggle-filtros');
   btnToggleTabla = document.getElementById('btn-toggle-tabla');
+  fabNuevoMov = document.getElementById('btn-fab-nuevo-mov');
 
   btnExportarBackup = document.getElementById('btn-exportar-backup');
   btnImportarBackup = document.getElementById('btn-importar-backup');
@@ -271,6 +273,13 @@ function configurarEventos() {
 
   if (btnOpenModalMovimiento) {
     btnOpenModalMovimiento.addEventListener('click', function () {
+      abrirModalNuevoMovimiento();
+    });
+  }
+
+  if (fabNuevoMov) { 
+    fabNuevoMov.addEventListener('click', function (e) {
+      e.preventDefault();
       abrirModalNuevoMovimiento();
     });
   }

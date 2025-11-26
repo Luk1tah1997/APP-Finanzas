@@ -46,22 +46,37 @@
   <!-- Menú lateral -->
   <ul id="slide-out" class="sidenav">
     <li>
-      <a href="#!" id="nav-toggle-filtros">
+      <a href="#section-filtros" id="nav-toggle-filtros">
         <i class="material-icons">filter_list</i>Filtros
       </a>
     </li>
     <li>
-      <a href="#!" id="nav-toggle-tabla">
+      <a href="#section-tabla" id="nav-toggle-tabla">
         <i class="material-icons">list</i>Movimientos
       </a>
     </li>
     <li>
-      <a href="#!" id="nav-dashboard">
+      <a href="#section-dashboard" id="nav-dashboard">
         <i class="material-icons">insert_chart</i>Dashboard
       </a>
     </li>
+
+    <!-- NUEVO: Calendario -->
     <li>
-      <a href="#!" id="nav-categorias">
+      <a href="#section-calendario" id="nav-calendario">
+        <i class="material-icons">event</i>Calendario
+      </a>
+    </li>
+
+    <!-- NUEVO: Timeline -->
+    <li>
+      <a href="#section-timeline" id="nav-timeline">
+        <i class="material-icons">timeline</i>Timeline
+      </a>
+    </li>
+
+    <li>
+      <a href="#section-categorias" id="nav-categorias">
         <i class="material-icons">category</i>Categorías
       </a>
     </li>
@@ -208,6 +223,175 @@
                 <canvas id="chart-pie-gastos-categoria"></canvas>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calendario mensual -->
+    <section id="section-calendario" class="section no-print hide">
+      <h5 class="section-title">Calendario</h5>
+
+      <div class="card calendar-card">
+        <div class="card-content">
+          <div class="calendar-layout row">
+
+            <!-- Columna izquierda: mes + grilla -->
+            <div class="col s12 m7 calendar-month-wrapper">
+
+              <!-- Header del mes -->
+              <div class="calendar-header">
+                <button id="btn-calendar-prev"
+                        type="button"
+                        class="btn-flat waves-effect calendar-nav-btn">
+                  <i class="material-icons">chevron_left</i>
+                </button>
+
+                <div class="calendar-header-center">
+                  <span id="calendar-current-month-label"
+                        class="calendar-month-label">
+                    <!-- Ej: Marzo 2025 -->
+                  </span>
+                  <button id="btn-calendar-today"
+                          type="button"
+                          class="btn-flat waves-effect calendar-today-btn">
+                    Hoy
+                  </button>
+                </div>
+
+                <button id="btn-calendar-next"
+                        type="button"
+                        class="btn-flat waves-effect calendar-nav-btn">
+                  <i class="material-icons">chevron_right</i>
+                </button>
+              </div>
+
+              <!-- Cabecera días de la semana -->
+              <div class="calendar-weekdays">
+                <div class="calendar-weekday">Lu</div>
+                <div class="calendar-weekday">Ma</div>
+                <div class="calendar-weekday">Mi</div>
+                <div class="calendar-weekday">Ju</div>
+                <div class="calendar-weekday">Vi</div>
+                <div class="calendar-weekday">Sa</div>
+                <div class="calendar-weekday">Do</div>
+              </div>
+
+              <!-- Grilla del mes -->
+              <div id="calendar-grid" class="calendar-grid">
+                <!-- Las celdas .calendar-day se generan por JS -->
+              </div>
+            </div>
+
+            <!-- Columna derecha: detalle del día seleccionado -->
+            <div class="col s12 m5 calendar-sidebar">
+
+              <!-- Resumen del día -->
+              <div class="calendar-day-summary">
+                <h6 class="calendar-day-summary-title">
+                  Detalle del día
+                </h6>
+                <p class="calendar-day-summary-date" id="calendar-day-date-label">
+                  <!-- Ej: 15 de Marzo de 2025 -->
+                </p>
+
+                <div class="calendar-day-totals">
+                  <div class="calendar-day-total-item">
+                    <span class="calendar-day-total-label">Ingresos</span>
+                    <span class="calendar-day-total-value">
+                      <span class="currency-symbol calendar-day-simbolo-ingresos">$</span>
+                      <span id="calendar-day-total-ingresos">0.00</span>
+                    </span>
+                  </div>
+                  <div class="calendar-day-total-item">
+                    <span class="calendar-day-total-label">Gastos</span>
+                    <span class="calendar-day-total-value">
+                      <span class="currency-symbol calendar-day-simbolo-gastos">$</span>
+                      <span id="calendar-day-total-gastos">0.00</span>
+                    </span>
+                  </div>
+                  <div class="calendar-day-total-item">
+                    <span class="calendar-day-total-label">Balance</span>
+                    <span class="calendar-day-total-value">
+                      <span class="currency-symbol calendar-day-simbolo-balance">$</span>
+                      <span id="calendar-day-total-balance">0.00</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de movimientos del día -->
+              <div class="calendar-day-movements">
+                <h6 class="calendar-day-movements-title">
+                  Movimientos del día
+                </h6>
+
+                <ul id="calendar-movimientos-dia" class="collection calendar-movements-list">
+                  <!-- Items generados por JS -->
+                </ul>
+
+                <p id="calendar-movimientos-empty"
+                   class="calendar-movements-empty-text">
+                  No hay movimientos para este día.
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline de ingresos / gastos / balance -->
+    <section id="section-timeline" class="section no-print hide">
+      <h5 class="section-title">Timeline</h5>
+
+      <div class="card timeline-card">
+        <div class="card-content">
+
+          <!-- Controles -->
+          <div class="row timeline-controls">
+
+            <!-- Período -->
+            <div class="input-field col s12 m4">
+              <select id="timeline-periodo">
+                <option value="dia" selected>Día</option>
+                <option value="semana">Semana</option>
+                <option value="mes">Mes</option>
+              </select>
+              <label for="timeline-periodo">Agrupar por</label>
+            </div>
+
+            <!-- Series a mostrar -->
+            <div class="col s12 m8 timeline-series-toggles">
+              <span class="timeline-series-label">Series:</span>
+
+              <label class="timeline-series-toggle">
+                <input type="checkbox" id="timeline-toggle-ingresos" checked>
+                <span>Ingresos</span>
+              </label>
+
+              <label class="timeline-series-toggle">
+                <input type="checkbox" id="timeline-toggle-gastos" checked>
+                <span>Gastos</span>
+              </label>
+
+              <label class="timeline-series-toggle">
+                <input type="checkbox" id="timeline-toggle-balance" checked>
+                <span>Balance</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Ayuda corta -->
+          <p class="timeline-helper-text">
+            El timeline usa los movimientos filtrados en la sección de Filtros.
+            Cambiá el período o los filtros para explorar distintos rangos.
+          </p>
+
+          <!-- Gráfico -->
+          <div class="timeline-chart-container">
+            <canvas id="chart-timeline"></canvas>
           </div>
         </div>
       </div>
@@ -372,7 +556,7 @@
       <span class="footer-app-name">Mis Finanzas</span>
       <span class="footer-divider">·</span>
       <span class="footer-copy">© 2025</span>
-      <span class="footer-version">v2.2</span>
+      <span class="footer-version">v2.3</span>
     </div>
   </footer>
 
@@ -510,6 +694,7 @@
         </div>
       </div>
 
+      <!-- Qué abrir al iniciar -->
       <div class="row">
         <div class="col s12 m3">
           <label>
@@ -533,6 +718,22 @@
           <label>
             <input id="config-abrir-modal" type="checkbox" class="filled-in">
             <span>Abrir "Nuevo movimiento" al iniciar</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- NUEVO: abrir calendario / timeline al iniciar -->
+      <div class="row">
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-calendario" type="checkbox" class="filled-in">
+            <span>Mostrar calendario al iniciar</span>
+          </label>
+        </div>
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-timeline" type="checkbox" class="filled-in">
+            <span>Mostrar timeline al iniciar</span>
           </label>
         </div>
       </div>

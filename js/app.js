@@ -1,5 +1,5 @@
 // app.js
-// SPA finanzas personales - V2.1 con dashboard y gráficos
+// SPA finanzas personales - V2.3 con calendario y timeline
 
 'use strict';
 
@@ -59,13 +59,16 @@ const DEFAULT_CONFIG = {
   abrirFiltrosAlInicio: false,
   abrirDashboardAlInicio: true,
   abrirModalAlInicio: false,
-  mostrarIconosCategorias: true
+  mostrarIconosCategorias: true,
+  abrirCalendarioAlInicio: false,
+  abrirTimelineAlInicio: false
 };
 
 // Instancias de gráficos (Chart.js)
 let chartIngresosGastos = null;
 let chartGastosPorCategoria = null;
 let chartBalanceTiempo = null;
+let chartTimeline = null;
 
 // Estado en memoria
 let movimientos = [];
@@ -90,6 +93,9 @@ let movimientoEnEliminacion = null;
 
 // ID incremental
 let nextId = 1;
+// Calendario
+let calendarCurrentDate = new Date(); // mes que se está mostrando
+let calendarSelectedDate = null;      // 'YYYY-MM-DD' seleccionada
 
 // ====================
 //   Referencias DOM
@@ -129,11 +135,17 @@ let radiosTipoMovimiento;
 let modalMovimientoTitulo;
 
 let chkConfigMostrarIconos;
-
+let chkConfigAbrirCalendario;
+let chkConfigAbrirTimeline;
 // Resumen símbolos
 let resumenSimboloIngresosEl;
 let resumenSimboloGastosEl;
 let resumenSimboloBalanceEl;
+
+// Calendario símbolos
+let calendarSimboloIngresosEl;
+let calendarSimboloGastosEl;
+let calendarSimboloBalanceEl;
 
 // Dashboard DOM
 let dashboardGastoPromedioDiarioEl;
@@ -164,6 +176,8 @@ let navImportarBackup;
 let navExportarCSV;
 let navImprimir;
 let btnSidenavToggle;
+let navCalendario;
+let navTimeline;
 
 // Instancias de Materialize
 let modalMovimientoInstance;
@@ -179,6 +193,24 @@ let formCategoria;
 let selectCategoriaTipo;
 let inputCategoriaNombre;
 let navCategorias;
+// Calendario DOM
+let calendarGridEl;
+let calendarMonthLabelEl;
+let calendarDayDateLabelEl;
+let calendarDayTotalIngresosEl;
+let calendarDayTotalGastosEl;
+let calendarDayTotalBalanceEl;
+let calendarMovimientosDiaEl;
+let calendarMovimientosEmptyEl;
+let btnCalendarPrev;
+let btnCalendarNext;
+let btnCalendarToday;
+
+// Timeline DOM
+let selectTimelinePeriodo;
+let chkTimelineIngresos;
+let chkTimelineGastos;
+let chkTimelineBalance;
 
 // ====================
 //   Utilidades varias
@@ -362,7 +394,15 @@ function cargarConfigDesdeStorage() {
       mostrarIconosCategorias:
         typeof cfg.mostrarIconosCategorias === 'boolean'
           ? cfg.mostrarIconosCategorias
-          : DEFAULT_CONFIG.mostrarIconosCategorias
+          : DEFAULT_CONFIG.mostrarIconosCategorias,
+      abrirCalendarioAlInicio:
+        typeof cfg.abrirCalendarioAlInicio === 'boolean'
+          ? cfg.abrirCalendarioAlInicio
+          : DEFAULT_CONFIG.abrirCalendarioAlInicio,
+      abrirTimelineAlInicio:
+        typeof cfg.abrirTimelineAlInicio === 'boolean'
+          ? cfg.abrirTimelineAlInicio
+          : DEFAULT_CONFIG.abrirTimelineAlInicio
     };
   } catch (e) {
     console.error('Error cargando config desde localStorage:', e);
@@ -410,6 +450,10 @@ function aplicarConfigMoneda() {
   if (resumenSimboloGastosEl) resumenSimboloGastosEl.textContent = simbolo;
   if (resumenSimboloBalanceEl) resumenSimboloBalanceEl.textContent = simbolo;
   if (modalEliminarMonedaEl) modalEliminarMonedaEl.textContent = simbolo;
+
+  if (calendarSimboloIngresosEl) calendarSimboloIngresosEl.textContent = simbolo;
+  if (calendarSimboloGastosEl) calendarSimboloGastosEl.textContent = simbolo;
+  if (calendarSimboloBalanceEl) calendarSimboloBalanceEl.textContent = simbolo;
 }
 
 function poblarConfigEnUI() {
@@ -464,6 +508,12 @@ function poblarConfigEnUI() {
       ? config.mostrarIconosCategorias
       : true;
   }
+  if (chkConfigAbrirCalendario) {
+    chkConfigAbrirCalendario.checked = !!config.abrirCalendarioAlInicio;
+  }
+  if (chkConfigAbrirTimeline) {
+    chkConfigAbrirTimeline.checked = !!config.abrirTimelineAlInicio;
+  }
 }
 
 function guardarConfigDesdeUI() {
@@ -474,7 +524,6 @@ function guardarConfigDesdeUI() {
 
   const simboloRaw = inputConfigMoneda ? inputConfigMoneda.value.trim() : '';
   const nuevoSimbolo = simboloRaw || DEFAULT_CONFIG.monedaSimbolo;
-
   const abrirTabla = chkConfigAbrirTabla ? chkConfigAbrirTabla.checked : false;
   const abrirFiltros = chkConfigAbrirFiltros
     ? chkConfigAbrirFiltros.checked
@@ -484,8 +533,16 @@ function guardarConfigDesdeUI() {
     : true;
   const abrirModal = chkConfigAbrirModal ? chkConfigAbrirModal.checked : false;
   const mostrarIconos = chkConfigMostrarIconos
-  ? chkConfigMostrarIconos.checked
-  : true;
+    ? chkConfigMostrarIconos.checked
+    : true;
+
+  // Opcionales añadidos recientemente (si existen en el DOM)
+  const abrirCalendario = chkConfigAbrirCalendario
+    ? chkConfigAbrirCalendario.checked
+    : false;
+  const abrirTimeline = chkConfigAbrirTimeline
+    ? chkConfigAbrirTimeline.checked
+    : false;
 
   config = {
     tema: nuevoTema,
@@ -494,7 +551,9 @@ function guardarConfigDesdeUI() {
     abrirFiltrosAlInicio: abrirFiltros,
     abrirDashboardAlInicio: abrirDashboard,
     abrirModalAlInicio: abrirModal,
-    mostrarIconosCategorias: mostrarIconos
+    mostrarIconosCategorias: mostrarIconos,
+    abrirCalendarioAlInicio: abrirCalendario,
+    abrirTimelineAlInicio: abrirTimeline,
   };
 
   guardarConfigEnStorage(config);
@@ -509,6 +568,8 @@ function guardarConfigDesdeUI() {
   setFiltrosVisible(config.abrirFiltrosAlInicio);
   setTablaVisible(config.abrirTablaAlInicio);
   setDashboardVisible(config.abrirDashboardAlInicio);
+  setCalendarioVisible(config.abrirCalendarioAlInicio);
+  setTimelineVisible(config.abrirTimelineAlInicio);
 
   if (modalConfigInstance) {
     modalConfigInstance.close();
@@ -636,6 +697,16 @@ document.addEventListener('DOMContentLoaded', function () {
       ? config.abrirDashboardAlInicio
       : true
   );
+  setCalendarioVisible(
+    typeof config.abrirCalendarioAlInicio === 'boolean'
+      ? config.abrirCalendarioAlInicio
+      : false
+  );
+  setTimelineVisible(
+    typeof config.abrirTimelineAlInicio === 'boolean'
+      ? config.abrirTimelineAlInicio
+      : false
+  );
 
   if (config.abrirModalAlInicio) {
     abrirModalNuevoMovimiento();
@@ -712,6 +783,8 @@ function cacheDomElements() {
   btnGuardarConfig = document.getElementById('btn-guardar-config');
   btnOpenConfigModal = document.getElementById('btn-open-config-modal');
   chkConfigMostrarIconos = document.getElementById('config-mostrar-iconos');
+  chkConfigAbrirCalendario = document.getElementById('config-abrir-calendario');
+  chkConfigAbrirTimeline = document.getElementById('config-abrir-timeline');
 
   // Items del menú lateral
   navToggleFiltros = document.getElementById('nav-toggle-filtros');
@@ -722,6 +795,8 @@ function cacheDomElements() {
   navExportarCSV = document.getElementById('nav-exportar-csv');
   navImprimir = document.getElementById('nav-imprimir');
   btnSidenavToggle = document.getElementById('btn-sidenav-toggle');
+  navCalendario = document.getElementById('nav-calendario');
+  navTimeline = document.getElementById('nav-timeline');
 
   // referencias dom categorías
   sectionCategorias = document.getElementById('section-categorias');
@@ -733,6 +808,33 @@ function cacheDomElements() {
 
   navCategorias = document.getElementById('nav-categorias');
 
+  // Calendario
+  calendarGridEl = document.getElementById('calendar-grid');
+  calendarMonthLabelEl = document.getElementById('calendar-current-month-label');
+  calendarDayDateLabelEl = document.getElementById('calendar-day-date-label');
+  calendarDayTotalIngresosEl = document.getElementById('calendar-day-total-ingresos');
+  calendarDayTotalGastosEl = document.getElementById('calendar-day-total-gastos');
+  calendarDayTotalBalanceEl = document.getElementById('calendar-day-total-balance');
+  calendarMovimientosDiaEl = document.getElementById('calendar-movimientos-dia');
+  calendarMovimientosEmptyEl = document.getElementById('calendar-movimientos-empty');
+  btnCalendarPrev = document.getElementById('btn-calendar-prev');
+  btnCalendarNext = document.getElementById('btn-calendar-next');
+  btnCalendarToday = document.getElementById('btn-calendar-today');
+
+  // Timeline
+  selectTimelinePeriodo = document.getElementById('timeline-periodo');
+  chkTimelineIngresos = document.getElementById('timeline-toggle-ingresos');
+  chkTimelineGastos = document.getElementById('timeline-toggle-gastos');
+  chkTimelineBalance = document.getElementById('timeline-toggle-balance');
+
+  // Calendario símbolos
+  calendarSimboloIngresosEl =
+    document.querySelector('.calendar-day-simbolo-ingresos');
+  calendarSimboloGastosEl =
+    document.querySelector('.calendar-day-simbolo-gastos');
+  calendarSimboloBalanceEl =
+    document.querySelector('.calendar-day-simbolo-balance');
+
 }
 
 // ====================
@@ -743,7 +845,7 @@ function configurarEventos() {
   if (formMovimiento) {
     formMovimiento.addEventListener('submit', manejarSubmitMovimiento);
   }
-  
+
   if (btnSidenavToggle) {
     btnSidenavToggle.addEventListener(
       'click',
@@ -776,6 +878,63 @@ function configurarEventos() {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       cerrarSidenav();
+    });
+  }
+
+    if (navCalendario) {
+    navCalendario.addEventListener('click', function (e) {
+      e.preventDefault();
+      setCalendarioVisible(true);
+      const section = document.getElementById('section-calendario');
+      if (section && section.scrollIntoView) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      cerrarSidenav();
+    });
+  }
+
+  if (navTimeline) {
+    navTimeline.addEventListener('click', function (e) {
+      e.preventDefault();
+      setTimelineVisible(true);
+      const section = document.getElementById('section-timeline');
+      if (section && section.scrollIntoView) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      cerrarSidenav();
+    });
+  }
+  // Navegación del calendario
+  if (btnCalendarPrev) {
+    btnCalendarPrev.addEventListener('click', function () {
+      const d =
+        calendarCurrentDate instanceof Date
+          ? new Date(calendarCurrentDate)
+          : new Date();
+      d.setMonth(d.getMonth() - 1);
+      calendarCurrentDate = d;
+      renderizarCalendario();
+    });
+  }
+
+  if (btnCalendarNext) {
+    btnCalendarNext.addEventListener('click', function () {
+      const d =
+        calendarCurrentDate instanceof Date
+          ? new Date(calendarCurrentDate)
+          : new Date();
+      d.setMonth(d.getMonth() + 1);
+      calendarCurrentDate = d;
+      renderizarCalendario();
+    });
+  }
+
+  if (btnCalendarToday) {
+    btnCalendarToday.addEventListener('click', function () {
+      const hoy = new Date();
+      calendarCurrentDate = hoy;
+      calendarSelectedDate = obtenerFechaHoyYYYYMMDD();
+      renderizarCalendario();
     });
   }
 
@@ -945,6 +1104,20 @@ function configurarEventos() {
       });
     });
   }
+  // Controles del timeline
+  if (selectTimelinePeriodo) {
+    selectTimelinePeriodo.addEventListener('change', refrescarTimelineDesdeFiltros);
+  }
+  if (chkTimelineIngresos) {
+    chkTimelineIngresos.addEventListener('change', refrescarTimelineDesdeFiltros);
+  }
+  if (chkTimelineGastos) {
+    chkTimelineGastos.addEventListener('change', refrescarTimelineDesdeFiltros);
+  }
+  if (chkTimelineBalance) {
+    chkTimelineBalance.addEventListener('change', refrescarTimelineDesdeFiltros);
+  }
+
 }
 
 
@@ -1301,8 +1474,16 @@ function actualizarResumen() {
   totalGastosEl.textContent = totalGastos.toFixed(2);
   totalBalanceEl.textContent = balance.toFixed(2);
 
-  // Mantener dashboard sincronizado
+  const simbolo = obtenerSimboloMoneda();
+
+  // Dashboard
   renderizarDashboard();
+
+  // Calendario (usa todos los movimientos, no los filtrados)
+  renderizarCalendario();
+
+  // Timeline (usa movimientos filtrados)
+  actualizarChartTimeline(lista, simbolo);
 }
 
 // ====================
@@ -1330,6 +1511,27 @@ function diferenciaDiasInclusive(fechaDesde, fechaHasta) {
   const diffMs = fechaHasta.getTime() - fechaDesde.getTime();
   const diffDias = Math.floor(diffMs / MS_POR_DIA);
   return diffDias >= 0 ? diffDias + 1 : 0;
+}
+
+// Nombres de meses en español
+const NOMBRES_MESES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+function formatearFechaLarga(fechaStr) {
+  const d = parseFechaYYYYMMDD(fechaStr);
+  if (!d) return fechaStr || '';
+  const dia = d.getDate();
+  const mesNombre = NOMBRES_MESES[d.getMonth()] || '';
+  const anio = d.getFullYear();
+  return dia + ' de ' + mesNombre + ' de ' + anio;
+}
+
+function formatearDiaMes(fecha) {
+  const d = fecha.getDate();
+  const m = fecha.getMonth() + 1;
+  return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0');
 }
 
 // Calcula estadísticas del dashboard
@@ -1960,6 +2162,336 @@ function obtenerMovimientosFiltrados() {
     return true;
   });
 }
+function refrescarTimelineDesdeFiltros() {
+  const lista = obtenerMovimientosFiltrados();
+  const simbolo = obtenerSimboloMoneda();
+  actualizarChartTimeline(lista, simbolo);
+}
+function obtenerClaveGrupoTimeline(fecha, periodo) {
+  const year = fecha.getFullYear();
+  const month = fecha.getMonth() + 1;
+
+  if (periodo === 'mes') {
+    const key = year + '-' + String(month).padStart(2, '0');
+    const label = String(month).padStart(2, '0') + '/' + String(year).slice(-2);
+    return { key: key, label: label };
+  }
+
+  if (periodo === 'semana') {
+    const day = fecha.getDay(); // 0=Dom
+    const diff = day === 0 ? -6 : 1 - day; // lunes
+    const inicio = new Date(fecha);
+    inicio.setDate(fecha.getDate() + diff);
+    const key = convertirFechaADateString(inicio);
+    const label = 'Sem ' + formatearDiaMes(inicio);
+    return { key: key, label: label };
+  }
+
+  // Día
+  const key = convertirFechaADateString(fecha);
+  const label = formatearDiaMes(fecha);
+  return { key: key, label: label };
+}
+
+function construirGruposTimeline(listaMovimientos, periodo) {
+  const mapa = {};
+
+  listaMovimientos.forEach(function (mov) {
+    const fecha = parseFechaYYYYMMDD(mov.fecha);
+    if (!fecha) return;
+
+    const clave = obtenerClaveGrupoTimeline(fecha, periodo);
+    const key = clave.key;
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        label: clave.label,
+        ingresos: 0,
+        gastos: 0
+      };
+    }
+
+    const g = mapa[key];
+    if (mov.tipo === 'INGRESO') {
+      g.ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      g.gastos += mov.monto;
+    }
+  });
+
+  const keys = Object.keys(mapa).sort(); // yyyy-mm-dd / yyyy-mm
+  return keys.map(function (k) {
+    const g = mapa[k];
+    return {
+      label: g.label,
+      ingresos: g.ingresos,
+      gastos: g.gastos
+    };
+  });
+}
+function actualizarChartTimeline(listaMovimientos, simbolo) {
+  const canvas = document.getElementById('chart-timeline');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const periodo = selectTimelinePeriodo ? selectTimelinePeriodo.value : 'dia';
+  const mostrarIngresos =
+    !chkTimelineIngresos || chkTimelineIngresos.checked;
+  const mostrarGastos =
+    !chkTimelineGastos || chkTimelineGastos.checked;
+  const mostrarBalance =
+    !chkTimelineBalance || chkTimelineBalance.checked;
+
+  const grupos = construirGruposTimeline(listaMovimientos, periodo);
+
+  const labels = grupos.map(function (g) {
+    return g.label;
+  });
+
+  const datasets = [];
+
+  if (mostrarIngresos) {
+    datasets.push({
+      label: 'Ingresos (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.ingresos; }),
+      borderColor: '#16a34a',
+      backgroundColor: '#16a34a',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarGastos) {
+    datasets.push({
+      label: 'Gastos (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.gastos; }),
+      borderColor: '#ef4444',
+      backgroundColor: '#ef4444',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (mostrarBalance) {
+    datasets.push({
+      label: 'Balance (' + simbolo + ')',
+      data: grupos.map(function (g) { return g.ingresos - g.gastos; }),
+      borderColor: '#2563eb',
+      backgroundColor: '#2563eb',
+      tension: 0.25,
+      fill: false
+    });
+  }
+
+  if (!labels.length || !datasets.length) {
+    if (chartTimeline) {
+      chartTimeline.destroy();
+      chartTimeline = null;
+    }
+    return;
+  }
+
+  if (chartTimeline) {
+    chartTimeline.data.labels = labels;
+    chartTimeline.data.datasets = datasets;
+    chartTimeline.update();
+    return;
+  }
+
+  chartTimeline = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Construye un índice fecha -> { ingresos, gastos, balance, lista[] }
+function construirIndiceMovimientosPorDia() {
+  const indice = {};
+
+  movimientos.forEach(function (mov) {
+    if (!mov.fecha) return;
+
+    if (!indice[mov.fecha]) {
+      indice[mov.fecha] = {
+        ingresos: 0,
+        gastos: 0,
+        balance: 0,
+        lista: []
+      };
+    }
+
+    const entry = indice[mov.fecha];
+    if (mov.tipo === 'INGRESO') {
+      entry.ingresos += mov.monto;
+    } else if (mov.tipo === 'GASTO') {
+      entry.gastos += mov.monto;
+    }
+    entry.balance = entry.ingresos - entry.gastos;
+    entry.lista.push(mov);
+  });
+
+  return indice;
+}
+function renderizarCalendario() {
+  if (!calendarGridEl || !calendarMonthLabelEl) return;
+
+  const indice = construirIndiceMovimientosPorDia();
+
+  const base =
+    calendarCurrentDate instanceof Date ? new Date(calendarCurrentDate) : new Date();
+  const year = base.getFullYear();
+  const month = base.getMonth(); // 0-11
+
+  // Etiqueta "Marzo 2025"
+  const mesNombre = NOMBRES_MESES[month] || '';
+  calendarMonthLabelEl.textContent = mesNombre + ' ' + year;
+
+  calendarGridEl.innerHTML = '';
+
+  // Primer día del mes
+  const firstOfMonth = new Date(year, month, 1);
+  const dayOfWeek = firstOfMonth.getDay(); // 0=Dom ... 6=Sab
+  const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // queremos lunes=0
+  const startDate = new Date(year, month, 1 - offset);
+
+  const hoyStr = obtenerFechaHoyYYYYMMDD();
+  if (!calendarSelectedDate) {
+    calendarSelectedDate = hoyStr;
+  }
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const iso = convertirFechaADateString(d);
+
+    const infoDia = indice[iso] || {
+      ingresos: 0,
+      gastos: 0,
+      balance: 0,
+      lista: []
+    };
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.dataset.date = iso;
+
+    // Colorear según balance del día
+    if (infoDia.balance > 0) {
+      dayEl.classList.add('calendar-day-positive');
+    } else if (infoDia.balance < 0) {
+      dayEl.classList.add('calendar-day-negative');
+    }
+
+    if (d.getMonth() !== month) {
+      dayEl.classList.add('calendar-day-outside');
+    }
+    if (iso === hoyStr) {
+      dayEl.classList.add('calendar-day-today');
+    }
+    if (iso === calendarSelectedDate) {
+      dayEl.classList.add('calendar-day-selected');
+    }
+
+    const numEl = document.createElement('div');
+    numEl.className = 'calendar-day-number';
+    numEl.textContent = d.getDate();
+    dayEl.appendChild(numEl);
+
+    const amountEl = document.createElement('div');
+    amountEl.className = 'calendar-day-amount';
+
+    if (infoDia.ingresos !== 0 || infoDia.gastos !== 0) {
+      const simbolo = obtenerSimboloMoneda();
+      const balance = infoDia.balance;
+      const prefijo = balance > 0 ? '+' : balance < 0 ? '-' : '';
+      amountEl.textContent =
+        prefijo + simbolo + ' ' + Math.abs(balance).toFixed(0);
+    } else {
+      amountEl.textContent = '';
+    }
+
+    dayEl.appendChild(amountEl);
+
+    dayEl.addEventListener('click', function () {
+      calendarSelectedDate = iso;
+      actualizarDetalleCalendario(iso, indice);
+      renderizarCalendario(); // re-dibuja selección
+    });
+
+    calendarGridEl.appendChild(dayEl);
+  }
+
+  actualizarDetalleCalendario(calendarSelectedDate, indice);
+}
+
+function actualizarDetalleCalendario(fechaStr, indice) {
+  if (
+    !calendarDayDateLabelEl ||
+    !calendarDayTotalIngresosEl ||
+    !calendarDayTotalGastosEl ||
+    !calendarDayTotalBalanceEl ||
+    !calendarMovimientosDiaEl ||
+    !calendarMovimientosEmptyEl
+  ) {
+    return;
+  }
+
+  const map = indice || construirIndiceMovimientosPorDia();
+  const infoDia =
+    (fechaStr && map && map[fechaStr]) || {
+      ingresos: 0,
+      gastos: 0,
+      balance: 0,
+      lista: []
+    };
+
+  calendarDayDateLabelEl.textContent = fechaStr
+    ? formatearFechaLarga(fechaStr)
+    : 'Sin seleccionar';
+
+  calendarDayTotalIngresosEl.textContent = infoDia.ingresos.toFixed(2);
+  calendarDayTotalGastosEl.textContent = infoDia.gastos.toFixed(2);
+  calendarDayTotalBalanceEl.textContent = infoDia.balance.toFixed(2);
+
+  calendarMovimientosDiaEl.innerHTML = '';
+
+  if (!infoDia.lista.length) {
+    calendarMovimientosEmptyEl.style.display = 'block';
+    return;
+  }
+
+  calendarMovimientosEmptyEl.style.display = 'none';
+
+  const simbolo = obtenerSimboloMoneda();
+
+  infoDia.lista.forEach(function (mov) {
+    const li = document.createElement('li');
+    li.className = 'collection-item';
+
+    const tipoStr = mov.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto';
+    const montoStr = simbolo + ' ' + mov.monto.toFixed(2);
+    const categoriaStr = mov.categoria || '-';
+    const notaStr = mov.nota ? ' · ' + mov.nota : '';
+
+    li.textContent =
+      tipoStr + ' · ' + categoriaStr + ' · ' + montoStr + notaStr;
+
+    calendarMovimientosDiaEl.appendChild(li);
+  });
+}
 
 // ====================
 //   Visibilidad de secciones
@@ -1981,6 +2513,20 @@ function setTablaVisible(visible) {
 
 function setDashboardVisible(visible) {
   const section = document.getElementById('section-dashboard');
+  if (!section) return;
+  if (visible) section.classList.remove('hide');
+  else section.classList.add('hide');
+}
+
+function setCalendarioVisible(visible) {
+  const section = document.getElementById('section-calendario');
+  if (!section) return;
+  if (visible) section.classList.remove('hide');
+  else section.classList.add('hide');
+}
+
+function setTimelineVisible(visible) {
+  const section = document.getElementById('section-timeline');
   if (!section) return;
   if (visible) section.classList.remove('hide');
   else section.classList.add('hide');
@@ -2152,6 +2698,17 @@ function manejarImportarBackup(event) {
         typeof config.abrirDashboardAlInicio === 'boolean'
           ? config.abrirDashboardAlInicio
           : true
+      );
+
+      setCalendarioVisible(
+        typeof config.abrirCalendarioAlInicio === 'boolean'
+          ? config.abrirCalendarioAlInicio
+          : false
+      );
+      setTimelineVisible(
+        typeof config.abrirTimelineAlInicio === 'boolean'
+          ? config.abrirTimelineAlInicio
+          : false
       );
 
       mostrarMensaje('Backup importado correctamente.');

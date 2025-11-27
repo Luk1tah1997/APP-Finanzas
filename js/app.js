@@ -4224,6 +4224,15 @@ function manejarImportarBackup(event) {
           ? config.abrirTimelineAlInicio
           : false
       );
+      setHerramientasVisible(
+        typeof config.abrirHerramientasAlInicio === 'boolean'
+          ? config.abrirHerramientasAlInicio
+          : false
+      );
+      if (config.abrirHerramientasAlInicio) {
+        const preferida = (config && config.herramientaPreferida) ? config.herramientaPreferida : 'presupuesto';
+        seleccionarHerramienta(preferida);
+      }
 
       mostrarMensaje('Backup importado correctamente.');
     } catch (err) {

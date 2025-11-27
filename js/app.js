@@ -1,11 +1,11 @@
 // app.js
-// SPA finanzas personales - V2.4 (modal mejorado, calendario multi-vista, timeline, dashboard)
+// SPA finanzas personales - V2.5 (pseudo-módulos internos para claridad)
 
 'use strict';
 
-// ====================
-//   Constantes / estado
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Estado global
+//////////////////////////////////////////////////////////////////////
 
 // Claves de localStorage
 const STORAGE_KEYS = {
@@ -122,14 +122,9 @@ let totalIngresosEl;
 let totalGastosEl;
 let totalBalanceEl;
 
-let btnOpenModalMovimiento;
 let fabNuevoMov;
 
-let btnExportarBackup;
-let btnImportarBackup;
 let inputImportarBackup;
-let btnExportarCSV;
-let btnImprimir;
 
 let selectFiltroPeriodo;
 let inputFiltroFechaDesde;
@@ -230,9 +225,9 @@ let modalEliminarInstance;
 let modalConfigInstance;
 let sidenavInstance;
 
-// ====================
-//   Utilidades varias
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Helpers
+//////////////////////////////////////////////////////////////////////
 
 function mostrarMensaje(mensaje) {
   if (window.M && M.toast) {
@@ -368,6 +363,10 @@ function asegurarIconosParaCategoriasExistentes() {
   });
   guardarCategoriaIconosEnStorage(categoriaIconos);
 }
+
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Config
+//////////////////////////////////////////////////////////////////////
 
 function guardarConfigEnStorage(cfg) {
   try {
@@ -723,9 +722,9 @@ function obtenerTipoCategoriaPorNombre(nombre) {
   return null;
 }
 
-// ====================
-//    Inicialización
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Init + Eventos
+//////////////////////////////////////////////////////////////////////
 
 document.addEventListener('DOMContentLoaded', function () {
   cacheDomElements();
@@ -754,6 +753,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderizarMovimientos();
   actualizarResumen();
+  refrescarTimelineDesdeFiltros();
 
   inicializarMaterialize();
   configurarEventos();
@@ -812,14 +812,9 @@ function cacheDomElements() {
   dashboardCantMovTotalEl =
     document.getElementById('dashboard-cant-mov-total');
 
-  btnOpenModalMovimiento = document.getElementById('btn-open-modal-movimiento');
   fabNuevoMov = document.getElementById('btn-fab-nuevo-mov');
 
-  btnExportarBackup = document.getElementById('btn-exportar-backup');
-  btnImportarBackup = document.getElementById('btn-importar-backup');
   inputImportarBackup = document.getElementById('input-importar-backup');
-  btnExportarCSV = document.getElementById('btn-exportar-csv');
-  btnImprimir = document.getElementById('btn-imprimir');
 
   selectFiltroPeriodo = document.getElementById('filtro-periodo');
   inputFiltroFechaDesde = document.getElementById('filtro-fecha-desde');
@@ -1118,35 +1113,12 @@ function configurarEventos() {
     });
   }
 
-  if (btnOpenModalMovimiento) {
-    btnOpenModalMovimiento.addEventListener('click', abrirModalNuevoMovimiento);
-  }
   if (fabNuevoMov) {
     fabNuevoMov.addEventListener('click', abrirModalNuevoMovimiento);
   }
 
-  if (btnExportarBackup) {
-    btnExportarBackup.addEventListener('click', exportarBackupJSON);
-  }
-  if (btnImportarBackup) {
-    btnImportarBackup.addEventListener('click', function () {
-      if (inputImportarBackup) {
-        inputImportarBackup.value = '';
-        inputImportarBackup.click();
-      }
-    });
-  }
   if (inputImportarBackup) {
     inputImportarBackup.addEventListener('change', manejarImportarBackup);
-  }
-
-  if (btnExportarCSV) {
-    btnExportarCSV.addEventListener('click', exportarCSV);
-  }
-  if (btnImprimir) {
-    btnImprimir.addEventListener('click', function () {
-      window.print();
-    });
   }
 
   if (btnAplicarFiltros) {
@@ -1337,9 +1309,9 @@ function inicializarMaterialize() {
   }
 }
 
-// ====================
-//   Categorías
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Categorías
+//////////////////////////////////////////////////////////////////////
 
 function renderizarCategoriasManager() {
   if (!listaCategoriasIngresoEl || !listaCategoriasGastoEl) return;
@@ -1684,6 +1656,7 @@ function actualizarResumen() {
   totalBalanceEl.textContent = balance.toFixed(2);
 
   renderizarDashboard();
+  refrescarTimelineDesdeFiltros();
   renderizarCalendario();
 }
 
@@ -1844,6 +1817,10 @@ function construirSerieBalancePorFecha(listaMovimientos) {
     valores: valores
   };
 }
+
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Dashboard + Charts
+//////////////////////////////////////////////////////////////////////
 
 function renderizarDashboard() {
   if (
@@ -2129,9 +2106,9 @@ function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
   });
 }
 
-// ====================
-//  Timeline
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Timeline
+//////////////////////////////////////////////////////////////////////
 
 function refrescarTimelineDesdeFiltros() {
   const lista = obtenerMovimientosFiltrados();
@@ -2326,9 +2303,9 @@ function construirIndiceMovimientosPorDia() {
   return indice;
 }
 
-// ====================
-//  Formulario / modal
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Movimientos, CRUD
+//////////////////////////////////////////////////////////////////////
 
 function limpiarFormularioMovimiento() {
   movimientoEnEdicion = null;
@@ -2591,9 +2568,9 @@ function manejarCambioCategoriaEnModal() {
   });
 }
 
-// ====================
-//       Filtros
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Filtros
+//////////////////////////////////////////////////////////////////////
 
 function inicializarEstadoFiltros() {
   filtros = {
@@ -2852,9 +2829,9 @@ function convertirFechaADateString(fecha) {
   return y + '-' + m + '-' + d;
 }
 
-// ====================
-//   Calendario (mes / semana / año)
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Calendario
+//////////////////////////////////////////////////////////////////////
 
 function renderizarCalendario() {
   if (!calendarGridEl || !calendarMonthLabelEl) return;
@@ -3188,9 +3165,9 @@ function actualizarDetalleCalendario(fechaStr, indice) {
   });
 }
 
-// ====================
-//   Backup / export
-// ====================
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Backup + Export
+//////////////////////////////////////////////////////////////////////
 
 function exportarBackupJSON() {
   const data = {
@@ -3367,201 +3344,3 @@ function exportarCSV() {
   descargarArchivo(nombre, csv, 'text/csv;charset=utf-8;');
   mostrarMensaje('CSV exportado.');
 }
-// ============================================
-//  FIX V2.4: TIMELINE + CALENDARIO MULTI-VISTA
-//  (pegar este bloque al final de app.js)
-// ============================================
-
-// --- Timeline ---
-
-function refrescarTimelineDesdeFiltros() {
-  if (typeof obtenerMovimientosFiltrados !== 'function') return;
-  const lista = obtenerMovimientosFiltrados();
-  const simbolo = typeof obtenerSimboloMoneda === 'function'
-    ? obtenerSimboloMoneda()
-    : '$';
-  actualizarChartTimeline(lista, simbolo);
-}
-
-function obtenerClaveGrupoTimeline(fecha, periodo) {
-  const year = fecha.getFullYear();
-  const month = fecha.getMonth() + 1;
-
-  if (periodo === 'mes') {
-    const key = year + '-' + String(month).padStart(2, '0');
-    const label =
-      String(month).padStart(2, '0') + '/' + String(year).slice(-2);
-    return { key: key, label: label };
-  }
-
-  if (periodo === 'semana') {
-    // lunes como inicio de semana
-    const day = fecha.getDay(); // 0=Dom
-    const diff = day === 0 ? -6 : 1 - day;
-    const inicio = new Date(fecha);
-    inicio.setDate(fecha.getDate() + diff);
-    const key = convertirFechaADateString(inicio);
-    const label = 'Sem ' + formatearDiaMes(inicio);
-    return { key: key, label: label };
-  }
-
-  // día
-  const key = convertirFechaADateString(fecha);
-  const label = formatearDiaMes(fecha);
-  return { key: key, label: label };
-}
-
-function construirGruposTimeline(listaMovimientos, periodo) {
-  const mapa = {};
-
-  listaMovimientos.forEach(function (mov) {
-    if (!mov.fecha) return;
-    const fecha = parseFechaYYYYMMDD(mov.fecha);
-    if (!fecha) return;
-
-    const clave = obtenerClaveGrupoTimeline(fecha, periodo);
-    const key = clave.key;
-    if (!mapa[key]) {
-      mapa[key] = {
-        label: clave.label,
-        ingresos: 0,
-        gastos: 0
-      };
-    }
-
-    if (mov.tipo === 'INGRESO') {
-      mapa[key].ingresos += mov.monto;
-    } else if (mov.tipo === 'GASTO') {
-      mapa[key].gastos += mov.monto;
-    }
-  });
-
-  const keys = Object.keys(mapa).sort();
-  return keys.map(function (k) {
-    const g = mapa[k];
-    return {
-      label: g.label,
-      ingresos: g.ingresos,
-      gastos: g.gastos
-    };
-  });
-}
-
-function actualizarChartTimeline(listaMovimientos, simbolo) {
-  const canvas = document.getElementById('chart-timeline');
-  if (!canvas || typeof Chart === 'undefined') return;
-
-  const periodo = selectTimelinePeriodo
-    ? selectTimelinePeriodo.value || 'dia'
-    : 'dia';
-  const mostrarIngresos =
-    !chkTimelineIngresos || chkTimelineIngresos.checked;
-  const mostrarGastos =
-    !chkTimelineGastos || chkTimelineGastos.checked;
-  const mostrarBalance =
-    !chkTimelineBalance || chkTimelineBalance.checked;
-
-  const grupos = construirGruposTimeline(listaMovimientos, periodo);
-  const labels = grupos.map(function (g) { return g.label; });
-
-  const datasets = [];
-
-  if (mostrarIngresos) {
-    datasets.push({
-      label: 'Ingresos (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.ingresos; }),
-      borderColor: '#16a34a',
-      backgroundColor: '#16a34a',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (mostrarGastos) {
-    datasets.push({
-      label: 'Gastos (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.gastos; }),
-      borderColor: '#ef4444',
-      backgroundColor: '#ef4444',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (mostrarBalance) {
-    datasets.push({
-      label: 'Balance (' + simbolo + ')',
-      data: grupos.map(function (g) { return g.ingresos - g.gastos; }),
-      borderColor: '#2563eb',
-      backgroundColor: '#2563eb',
-      tension: 0.25,
-      fill: false
-    });
-  }
-
-  if (!labels.length || !datasets.length) {
-    if (typeof chartTimeline !== 'undefined' && chartTimeline) {
-      chartTimeline.destroy();
-      chartTimeline = null;
-    }
-    return;
-  }
-
-  if (typeof chartTimeline !== 'undefined' && chartTimeline) {
-    chartTimeline.data.labels = labels;
-    chartTimeline.data.datasets = datasets;
-    chartTimeline.update();
-    return;
-  }
-
-  // si no existe aún, lo creamos
-  chartTimeline = new Chart(canvas.getContext('2d'), {
-    type: 'line',
-    data: { labels: labels, datasets: datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-}
-
-// --- Índice de movimientos por día (sobrescritura segura) ---
-
-function construirIndiceMovimientosPorDia() {
-  const indice = {};
-
-  (movimientos || []).forEach(function (mov) {
-    if (!mov.fecha) return;
-    if (!indice[mov.fecha]) {
-      indice[mov.fecha] = {
-        ingresos: 0,
-        gastos: 0,
-        balance: 0,
-        lista: []
-      };
-    }
-
-    const entry = indice[mov.fecha];
-    if (mov.tipo === 'INGRESO') {
-      entry.ingresos += mov.monto;
-    } else if (mov.tipo === 'GASTO') {
-      entry.gastos += mov.monto;
-    }
-    entry.balance = entry.ingresos - entry.gastos;
-    entry.lista.push(mov);
-  });
-
-  return indice;
-}
-
-// Llamado extra al cargar todo para evitar timeline / calendario vacíos
-window.addEventListener('load', function () {
-  try {
-    refrescarTimelineDesdeFiltros();
-    renderizarCalendario();
-  } catch (e) {
-    console.error('Error inicializando timeline/calendario V2.4:', e);
-  }
-});

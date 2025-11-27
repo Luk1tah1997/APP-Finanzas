@@ -1253,9 +1253,9 @@ function configurarEventos() {
 
   if (navHerramientas) {
     navHerramientas.addEventListener('click', function (e) {
+      // FIX navegacion herramientas: orden consistente al hacer clic en sidenav
       e.preventDefault();
       setHerramientasVisible(true);
-      // Asegurar que haya una herramienta visible al abrir desde la barra lateral
       const preferidaClick = (config && config.herramientaPreferida) ? config.herramientaPreferida : 'presupuesto';
       seleccionarHerramienta(preferidaClick);
       const section = sectionHerramientas || document.getElementById('section-herramientas');
@@ -3678,11 +3678,16 @@ function setCategoriasVisible(visible) {
 function setHerramientasVisible(visible) {
   const section = sectionHerramientas || document.getElementById('section-herramientas');
   if (!section) return;
-  if (visible) section.classList.remove('hide');
-  else section.classList.add('hide');
+  // FIX navegacion herramientas: garantizar que siempre se quite/añada la clase 'hide' sin condiciones extra
+  if (visible) {
+    section.classList.remove('hide');
+  } else {
+    section.classList.add('hide');
+  }
 }
 
 function seleccionarHerramienta(nombre) {
+  // FIX navegacion herramientas: fallback seguro si el nombre es inválido, siempre mostrar al menos 'presupuesto'
   const items = [
     { el: itemHerramientaPresupuesto, panel: panelHerramientaPresupuesto, key: 'presupuesto' },
     { el: itemHerramientaGrupal, panel: panelHerramientaGrupal, key: 'grupal' },
@@ -3696,13 +3701,18 @@ function seleccionarHerramienta(nombre) {
     if (it.panel) it.panel.style.display = 'none';
   });
 
-  const found = items.find(function (it) { return it.key === nombre; });
-  if (found) {
-    if (found.el) found.el.classList.add('activa');
-    if (found.panel) found.panel.style.display = '';
+  let target = items.find(function (it) { return it.key === nombre; });
+  if (!target) {
+    // nombre inválido -> usar presupuesto
+    target = items.find(function (it) { return it.key === 'presupuesto'; });
+    nombre = 'presupuesto';
+  }
+  if (target) {
+    if (target.el) target.el.classList.add('activa');
+    if (target.panel) target.panel.style.display = '';
   }
 
-  // Opcional: recordar preferencia
+  // Guardar preferencia de herramienta seleccionada
   if (config) {
     config.herramientaPreferida = nombre;
     guardarConfigEnStorage(config);

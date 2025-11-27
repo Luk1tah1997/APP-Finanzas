@@ -1,3 +1,25 @@
+/* Centro de herramientas */
+.herramientas-menu .collection {
+  margin: 0;
+}
+.herramientas-menu-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.herramientas-menu-item.activa {
+  background-color: rgba(0,0,0,0.06);
+}
+body.dark-mode .herramientas-menu-item.activa {
+  background-color: rgba(148, 163, 184, 0.18);
+}
+.herramientas-menu-item i.material-icons.left {
+  margin-right: 12px;
+}
+
+#herramientas-contenido .card {
+  margin-bottom: 1rem;
+}
 /* =========================================================
    Design tokens (fácil de portar a SASS)
    ========================================================= */

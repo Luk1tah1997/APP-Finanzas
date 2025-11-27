@@ -244,6 +244,44 @@ let hgResultadoElem;
 let hgBtnLimpiarElem;
 let sectionHerramientas;
 
+// Centro de herramientas
+let herramientasMenuElem;
+let itemHerramientaPresupuesto;
+let itemHerramientaGrupal;
+let itemHerramientaDivisas;
+let itemHerramientaInteres;
+let itemHerramientaObjetivo;
+let panelHerramientaPresupuesto;
+let panelHerramientaGrupal;
+let panelHerramientaDivisas;
+let panelHerramientaInteres;
+let panelHerramientaObjetivo;
+
+// Herramienta: Divisas
+let formHerramientaDivisas;
+let hdMontoElem;
+let hdMonedaOrigenElem;
+let hdMonedaDestinoElem;
+let hdResultadoElem;
+let hdBtnLimpiarElem;
+
+// Herramienta: Interés compuesto
+let formHerramientaInteres;
+let hiMontoInicialElem;
+let hiAporteMensualElem;
+let hiTasaAnualElem;
+let hiPlazoAniosElem;
+let hiResultadoElem;
+let hiBtnLimpiarElem;
+
+// Herramienta: Objetivo de ahorro
+let formHerramientaObjetivo;
+let hoMontoObjetivoElem;
+let hoMesesElem;
+let hoAporteActualElem;
+let hoResultadoElem;
+let hoBtnLimpiarElem;
+
 let modalResultadoPresupuesto;
 let modalResultadoGrupal;
 let modalHistorialHerramientas;
@@ -832,6 +870,10 @@ document.addEventListener('DOMContentLoaded', function () {
       : false
   );
 
+  // Herramienta por defecto al abrir Herramientas
+  const preferida = (config && config.herramientaPreferida) ? config.herramientaPreferida : 'presupuesto';
+  seleccionarHerramienta(preferida);
+
   if (config.abrirModalAlInicio) {
     abrirModalNuevoMovimiento();
   }
@@ -978,6 +1020,44 @@ function cacheDomElements() {
   hgResultadoElem = document.getElementById('hg-resultado');
   hgBtnLimpiarElem = document.getElementById('hg-btn-limpiar');
   sectionHerramientas = document.getElementById('section-herramientas');
+
+  // Centro de herramientas (menú y paneles)
+  herramientasMenuElem = document.getElementById('herramientas-menu-lista');
+  itemHerramientaPresupuesto = document.getElementById('herramienta-item-presupuesto');
+  itemHerramientaGrupal = document.getElementById('herramienta-item-grupal');
+  itemHerramientaDivisas = document.getElementById('herramienta-item-divisas');
+  itemHerramientaInteres = document.getElementById('herramienta-item-interes');
+  itemHerramientaObjetivo = document.getElementById('herramienta-item-objetivo');
+  panelHerramientaPresupuesto = document.getElementById('herramienta-panel-presupuesto');
+  panelHerramientaGrupal = document.getElementById('herramienta-panel-grupal');
+  panelHerramientaDivisas = document.getElementById('herramienta-panel-divisas');
+  panelHerramientaInteres = document.getElementById('herramienta-panel-interes');
+  panelHerramientaObjetivo = document.getElementById('herramienta-panel-objetivo');
+
+  // Divisas
+  formHerramientaDivisas = document.getElementById('form-herramienta-divisas');
+  hdMontoElem = document.getElementById('hd-monto');
+  hdMonedaOrigenElem = document.getElementById('hd-moneda-origen');
+  hdMonedaDestinoElem = document.getElementById('hd-moneda-destino');
+  hdResultadoElem = document.getElementById('hd-resultado');
+  hdBtnLimpiarElem = document.getElementById('hd-btn-limpiar');
+
+  // Interés
+  formHerramientaInteres = document.getElementById('form-herramienta-interes');
+  hiMontoInicialElem = document.getElementById('hi-monto-inicial');
+  hiAporteMensualElem = document.getElementById('hi-aporte-mensual');
+  hiTasaAnualElem = document.getElementById('hi-tasa-anual');
+  hiPlazoAniosElem = document.getElementById('hi-plazo-anios');
+  hiResultadoElem = document.getElementById('hi-resultado');
+  hiBtnLimpiarElem = document.getElementById('hi-btn-limpiar');
+
+  // Objetivo
+  formHerramientaObjetivo = document.getElementById('form-herramienta-objetivo');
+  hoMontoObjetivoElem = document.getElementById('ho-monto-objetivo');
+  hoMesesElem = document.getElementById('ho-meses');
+  hoAporteActualElem = document.getElementById('ho-aporte-actual');
+  hoResultadoElem = document.getElementById('ho-resultado');
+  hoBtnLimpiarElem = document.getElementById('ho-btn-limpiar');
 
   modalResultadoPresupuesto = document.getElementById('modal-resultado-presupuesto');
   modalResultadoGrupal = document.getElementById('modal-resultado-grupal');
@@ -1406,6 +1486,53 @@ function configurarEventos() {
   // Evento para sincronizar cantidad de personas con las filas
   if (hgCantidadPersonasElem) {
     hgCantidadPersonasElem.addEventListener('input', sincronizarFilasPersonasConCantidad);
+  }
+
+  // Centro de herramientas: selección
+  function bindHerramientaItem(el, nombre) {
+    if (!el) return;
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      seleccionarHerramienta(nombre);
+    });
+  }
+  bindHerramientaItem(itemHerramientaPresupuesto, 'presupuesto');
+  bindHerramientaItem(itemHerramientaGrupal, 'grupal');
+  bindHerramientaItem(itemHerramientaDivisas, 'divisas');
+  bindHerramientaItem(itemHerramientaInteres, 'interes');
+  bindHerramientaItem(itemHerramientaObjetivo, 'objetivo');
+
+  // Divisas
+  if (formHerramientaDivisas) {
+    formHerramientaDivisas.addEventListener('submit', manejarSubmitHerramientaDivisas);
+  }
+  if (hdBtnLimpiarElem) {
+    hdBtnLimpiarElem.addEventListener('click', function (e) {
+      e.preventDefault();
+      limpiarHerramientaDivisas();
+    });
+  }
+
+  // Interés compuesto
+  if (formHerramientaInteres) {
+    formHerramientaInteres.addEventListener('submit', manejarSubmitHerramientaInteres);
+  }
+  if (hiBtnLimpiarElem) {
+    hiBtnLimpiarElem.addEventListener('click', function (e) {
+      e.preventDefault();
+      limpiarHerramientaInteres();
+    });
+  }
+
+  // Objetivo de ahorro
+  if (formHerramientaObjetivo) {
+    formHerramientaObjetivo.addEventListener('submit', manejarSubmitHerramientaObjetivo);
+  }
+  if (hoBtnLimpiarElem) {
+    hoBtnLimpiarElem.addEventListener('click', function (e) {
+      e.preventDefault();
+      limpiarHerramientaObjetivo();
+    });
   }
 }
 
@@ -2894,6 +3021,129 @@ function limpiarHerramientaGrupal() {
 }
 
 // ====================
+//  Conversor de divisas
+// ====================
+
+const TASAS_DIVISAS = {
+  ARS: { ARS: 1, USD: 1 / 1000, EUR: 1 / 1100 },
+  USD: { ARS: 1000, USD: 1, EUR: 1.1 },
+  EUR: { ARS: 1100, USD: 0.9, EUR: 1 }
+};
+
+function manejarSubmitHerramientaDivisas(event) {
+  event.preventDefault();
+  if (!hdMontoElem || !hdMonedaOrigenElem || !hdMonedaDestinoElem || !hdResultadoElem) return;
+  const monto = parseFloat(hdMontoElem.value || '0');
+  const origen = hdMonedaOrigenElem.value || 'ARS';
+  const destino = hdMonedaDestinoElem.value || 'USD';
+  if (!monto || monto <= 0) {
+    hdResultadoElem.innerHTML = '<span style="color:#ef5350;">Ingresá un monto válido.</span>';
+    return;
+  }
+  const tasa = (TASAS_DIVISAS[origen] && TASAS_DIVISAS[origen][destino]) ? TASAS_DIVISAS[origen][destino] : null;
+  if (!tasa) {
+    hdResultadoElem.innerHTML = '<span style="color:#ef5350;">Monedas no soportadas.</span>';
+    return;
+  }
+  const convertido = monto * tasa;
+  hdResultadoElem.innerHTML = '<p><strong>Resultado:</strong> ' + convertido.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + destino + '</p>';
+}
+
+function limpiarHerramientaDivisas() {
+  if (!hdMontoElem || !hdResultadoElem) return;
+  hdMontoElem.value = '';
+  hdResultadoElem.innerHTML = '';
+  if (window.M && M.updateTextFields) M.updateTextFields();
+}
+
+// ====================
+//  Interés compuesto
+// ====================
+
+function manejarSubmitHerramientaInteres(event) {
+  event.preventDefault();
+  if (!hiMontoInicialElem || !hiAporteMensualElem || !hiTasaAnualElem || !hiPlazoAniosElem || !hiResultadoElem) return;
+  const montoInicial = parseFloat(hiMontoInicialElem.value || '0');
+  const aporteMensual = parseFloat(hiAporteMensualElem.value || '0');
+  const tasaAnual = parseFloat(hiTasaAnualElem.value || '0');
+  const plazoAnios = parseInt(hiPlazoAniosElem.value || '0', 10);
+  if (plazoAnios <= 0 || tasaAnual < 0 || montoInicial < 0 || aporteMensual < 0) {
+    hiResultadoElem.innerHTML = '<span style="color:#ef5350;">Ingresá valores válidos.</span>';
+    return;
+  }
+  const tasaMensual = (tasaAnual / 100) / 12;
+  const meses = plazoAnios * 12;
+  let saldo = montoInicial;
+  let totalAportado = 0;
+  for (let m = 0; m < meses; m++) {
+    saldo = saldo * (1 + tasaMensual);
+    saldo += aporteMensual;
+    totalAportado += aporteMensual;
+  }
+  const intereses = saldo - (montoInicial + totalAportado);
+  const simbolo = obtenerSimboloMoneda();
+  hiResultadoElem.innerHTML =
+    '<p><strong>Total aportado:</strong> ' + simbolo + ' ' + totalAportado.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' +
+    '<p><strong>Total final:</strong> ' + simbolo + ' ' + saldo.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' +
+    '<p><strong>Intereses generados:</strong> ' + simbolo + ' ' + intereses.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>';
+}
+
+function limpiarHerramientaInteres() {
+  if (!hiMontoInicialElem || !hiAporteMensualElem || !hiTasaAnualElem || !hiPlazoAniosElem || !hiResultadoElem) return;
+  hiMontoInicialElem.value = '';
+  hiAporteMensualElem.value = '';
+  hiTasaAnualElem.value = '';
+  hiPlazoAniosElem.value = '';
+  hiResultadoElem.innerHTML = '';
+  if (window.M && M.updateTextFields) M.updateTextFields();
+}
+
+// ====================
+//  Objetivo de ahorro
+// ====================
+
+function manejarSubmitHerramientaObjetivo(event) {
+  event.preventDefault();
+  if (!hoMontoObjetivoElem || !hoMesesElem || !hoResultadoElem) return;
+  const montoObjetivo = parseFloat(hoMontoObjetivoElem.value || '0');
+  const meses = parseInt(hoMesesElem.value || '0', 10);
+  const aporteActual = parseFloat(hoAporteActualElem?.value || '0');
+  if (montoObjetivo <= 0 || meses <= 0) {
+    hoResultadoElem.innerHTML = '<span style="color:#ef5350;">Ingresá un objetivo y meses válidos.</span>';
+    return;
+  }
+  const simbolo = obtenerSimboloMoneda();
+  if (!aporteActual || aporteActual <= 0) {
+    const aporteMensualNecesario = montoObjetivo / meses;
+    const aporteDiarioNecesario = aporteMensualNecesario / 30;
+    hoResultadoElem.innerHTML =
+      '<p><strong>Aporte mensual necesario:</strong> ' + simbolo + ' ' + aporteMensualNecesario.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' +
+      '<p><strong>Aporte diario necesario:</strong> ' + simbolo + ' ' + aporteDiarioNecesario.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>';
+  } else {
+    const totalAhorradoConActual = aporteActual * meses;
+    if (totalAhorradoConActual >= montoObjetivo) {
+      hoResultadoElem.innerHTML = '<p style="color:#66bb6a;"><strong>¡Objetivo alcanzado!</strong> Con tu aporte actual lograrías ' + simbolo + ' ' + totalAhorradoConActual.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '.</p>';
+    } else {
+      const faltante = montoObjetivo - totalAhorradoConActual;
+      const aporteNecesario = (montoObjetivo / meses);
+      hoResultadoElem.innerHTML =
+        '<p><strong>Con tu aporte actual ahorrarías:</strong> ' + simbolo + ' ' + totalAhorradoConActual.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' +
+        '<p><strong>Faltante:</strong> ' + simbolo + ' ' + faltante.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' +
+        '<p><strong>Aporte mensual necesario para alcanzar:</strong> ' + simbolo + ' ' + aporteNecesario.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>';
+    }
+  }
+}
+
+function limpiarHerramientaObjetivo() {
+  if (!hoMontoObjetivoElem || !hoMesesElem || !hoResultadoElem) return;
+  hoMontoObjetivoElem.value = '';
+  hoMesesElem.value = '';
+  if (hoAporteActualElem) hoAporteActualElem.value = '';
+  hoResultadoElem.innerHTML = '';
+  if (window.M && M.updateTextFields) M.updateTextFields();
+}
+
+// ====================
 //  Índice de movimientos por día
 // ====================
 
@@ -3384,6 +3634,33 @@ function setHerramientasVisible(visible) {
   if (!section) return;
   if (visible) section.classList.remove('hide');
   else section.classList.add('hide');
+}
+
+function seleccionarHerramienta(nombre) {
+  const items = [
+    { el: itemHerramientaPresupuesto, panel: panelHerramientaPresupuesto, key: 'presupuesto' },
+    { el: itemHerramientaGrupal, panel: panelHerramientaGrupal, key: 'grupal' },
+    { el: itemHerramientaDivisas, panel: panelHerramientaDivisas, key: 'divisas' },
+    { el: itemHerramientaInteres, panel: panelHerramientaInteres, key: 'interes' },
+    { el: itemHerramientaObjetivo, panel: panelHerramientaObjetivo, key: 'objetivo' }
+  ];
+
+  items.forEach(function (it) {
+    if (it.el) it.el.classList.remove('activa');
+    if (it.panel) it.panel.style.display = 'none';
+  });
+
+  const found = items.find(function (it) { return it.key === nombre; });
+  if (found) {
+    if (found.el) found.el.classList.add('activa');
+    if (found.panel) found.panel.style.display = '';
+  }
+
+  // Opcional: recordar preferencia
+  if (config) {
+    config.herramientaPreferida = nombre;
+    guardarConfigEnStorage(config);
+  }
 }
 
 function cerrarSidenav() {

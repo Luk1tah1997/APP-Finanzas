@@ -458,122 +458,262 @@
     </section>
 
     <section id="section-herramientas" class="section">
-      <h5 class="section-title">Herramientas rápidas</h5>
-      
-      <!-- Herramienta 1: Presupuesto diario -->
-      <div class="card" id="herramienta-presupuesto">
-        <div class="card-content">
-          <span class="card-title">Presupuesto diario</span>
-          <p class="grey-text text-darken-1">
-            Calcula cuánto podés gastar por día según el monto disponible y los días restantes.
-          </p>
+      <h5 class="section-title">Centro de herramientas</h5>
 
-          <form id="form-herramienta-presupuesto">
-            <div class="row">
-              <div class="col s12 m6">
-                <div class="input-field">
-                  <input id="hp-monto-disponible" type="number" step="0.01" />
-                  <label for="hp-monto-disponible">Monto disponible</label>
-                </div>
-              </div>
-              <div class="col s12 m6">
-                <div class="input-field">
-                  <input id="hp-dias-restantes" type="number" />
-                  <label for="hp-dias-restantes">Días restantes</label>
-                </div>
-              </div>
+      <div class="row">
+        <!-- Columna izquierda: menú de herramientas -->
+        <div class="col s12 m4">
+          <div class="card herramientas-menu">
+            <div class="card-content">
+              <ul id="herramientas-menu-lista" class="collection">
+                <li class="collection-item herramientas-menu-item activa" id="herramienta-item-presupuesto">
+                  <i class="material-icons left">attach_money</i>
+                  Presupuesto diario
+                </li>
+                <li class="collection-item herramientas-menu-item" id="herramienta-item-grupal">
+                  <i class="material-icons left">group</i>
+                  Gastos grupales
+                </li>
+                <li class="collection-item herramientas-menu-item" id="herramienta-item-divisas">
+                  <i class="material-icons left">swap_horiz</i>
+                  Conversor de divisas
+                </li>
+                <li class="collection-item herramientas-menu-item" id="herramienta-item-interes">
+                  <i class="material-icons left">trending_up</i>
+                  Interés compuesto
+                </li>
+                <li class="collection-item herramientas-menu-item" id="herramienta-item-objetivo">
+                  <i class="material-icons left">flag</i>
+                  Objetivo de ahorro
+                </li>
+              </ul>
             </div>
-
-            <div class="row no-print">
-              <div class="col s12 m6">
-                <button
-                  class="btn waves-effect waves-light btn-full-width"
-                  type="submit"
-                  id="hp-btn-calcular"
-                >
-                  Calcular
-                </button>
-              </div>
-              <div class="col s12 m6">
-                <button
-                  class="btn grey lighten-1 black-text waves-effect btn-full-width"
-                  type="button"
-                  id="hp-btn-limpiar"
-                >
-                  Limpiar
-                </button>
-              </div>
-            </div>
-
-            <div id="hp-resultado" class="grey-text text-darken-2"></div>
-          </form>
+          </div>
         </div>
-      </div>
 
-      <!-- Herramienta 2: Gastos grupales -->
-      <div class="card" id="herramienta-grupal">
-        <div class="card-content">
-          <span class="card-title">Gastos grupales</span>
-          <p class="grey-text text-darken-1">
-            Calcula cuánto debe aportar cada persona en un gasto grupal.
-          </p>
-
-          <form id="form-herramienta-grupal">
-            <div class="row">
-              <div class="col s12 m6">
-                <div class="input-field">
-                  <input id="hg-monto-total" type="number" step="0.01" />
-                  <label for="hg-monto-total">Monto total</label>
+        <!-- Columna derecha: paneles de contenido -->
+        <div class="col s12 m8">
+          <div id="herramientas-contenido">
+            <!-- Panel Presupuesto diario -->
+            <div id="herramienta-panel-presupuesto">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Presupuesto diario</span>
+                  <p class="grey-text text-darken-1">
+                    Calcula cuánto podés gastar por día según el monto disponible y los días restantes.
+                  </p>
+                  <form id="form-herramienta-presupuesto">
+                    <div class="row">
+                      <div class="col s12 m6">
+                        <div class="input-field">
+                          <input id="hp-monto-disponible" type="number" step="0.01" />
+                          <label for="hp-monto-disponible">Monto disponible</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m6">
+                        <div class="input-field">
+                          <input id="hp-dias-restantes" type="number" />
+                          <label for="hp-dias-restantes">Días restantes</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-print">
+                      <div class="col s12 m6">
+                        <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hp-btn-calcular">Calcular</button>
+                      </div>
+                      <div class="col s12 m6">
+                        <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hp-btn-limpiar">Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="hp-resultado" class="grey-text text-darken-2"></div>
+                  </form>
                 </div>
               </div>
-              <div class="col s12 m6">
-                <div class="input-field">
-                  <input id="hg-cantidad-personas" type="number" />
-                  <label for="hg-cantidad-personas">Cantidad de personas</label>
+            </div>
+
+            <!-- Panel Gastos grupales -->
+            <div id="herramienta-panel-grupal" style="display:none;">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Gastos grupales</span>
+                  <p class="grey-text text-darken-1">
+                    Calcula cuánto debe aportar cada persona en un gasto grupal.
+                  </p>
+                  <form id="form-herramienta-grupal">
+                    <div class="row">
+                      <div class="col s12 m6">
+                        <div class="input-field">
+                          <input id="hg-monto-total" type="number" step="0.01" />
+                          <label for="hg-monto-total">Monto total</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m6">
+                        <div class="input-field">
+                          <input id="hg-cantidad-personas" type="number" />
+                          <label for="hg-cantidad-personas">Cantidad de personas</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="hg-personas-container" class="row" style="display: none;">
+                      <div class="col s12">
+                        <button class="btn-small waves-effect waves-light" type="button" id="hg-btn-agregar-persona">
+                          <i class="material-icons left">person_add</i>
+                          Agregar persona
+                        </button>
+                      </div>
+                      <div class="col s12">
+                        <div id="hg-personas-lista"></div>
+                      </div>
+                    </div>
+                    <div class="row no-print">
+                      <div class="col s12 m6">
+                        <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hg-btn-calcular">Calcular</button>
+                      </div>
+                      <div class="col s12 m6">
+                        <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hg-btn-limpiar">Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="hg-resultado" class="grey-text text-darken-2"></div>
+                  </form>
                 </div>
               </div>
             </div>
 
-            <!-- Contenedor de gestión de personas -->
-            <div id="hg-personas-container" class="row" style="display: none;">
-              <div class="col s12">
-                <button
-                  class="btn-small waves-effect waves-light"
-                  type="button"
-                  id="hg-btn-agregar-persona"
-                >
-                  <i class="material-icons left">person_add</i>
-                  Agregar persona
-                </button>
-              </div>
-              <div class="col s12">
-                <div id="hg-personas-lista"></div>
+            <!-- Panel Conversor de divisas -->
+            <div id="herramienta-panel-divisas" style="display:none;">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Conversor de divisas</span>
+                  <form id="form-herramienta-divisas">
+                    <div class="row">
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <input id="hd-monto" type="number" step="0.01" />
+                          <label for="hd-monto">Monto</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <select id="hd-moneda-origen">
+                            <option value="ARS">ARS</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                          </select>
+                          <label>Moneda origen</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <select id="hd-moneda-destino">
+                            <option value="USD">USD</option>
+                            <option value="ARS">ARS</option>
+                            <option value="EUR">EUR</option>
+                          </select>
+                          <label>Moneda destino</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-print">
+                      <div class="col s12 m6">
+                        <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hd-btn-calcular">Calcular</button>
+                      </div>
+                      <div class="col s12 m6">
+                        <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hd-btn-limpiar">Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="hd-resultado" class="grey-text text-darken-2"></div>
+                  </form>
+                </div>
               </div>
             </div>
 
-            <div class="row no-print">
-              <div class="col s12 m6">
-                <button
-                  class="btn waves-effect waves-light btn-full-width"
-                  type="submit"
-                  id="hg-btn-calcular"
-                >
-                  Calcular
-                </button>
-              </div>
-              <div class="col s12 m6">
-                <button
-                  class="btn grey lighten-1 black-text waves-effect btn-full-width"
-                  type="button"
-                  id="hg-btn-limpiar"
-                >
-                  Limpiar
-                </button>
+            <!-- Panel Interés compuesto -->
+            <div id="herramienta-panel-interes" style="display:none;">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Interés compuesto</span>
+                  <form id="form-herramienta-interes">
+                    <div class="row">
+                      <div class="col s12 m3">
+                        <div class="input-field">
+                          <input id="hi-monto-inicial" type="number" step="0.01" />
+                          <label for="hi-monto-inicial">Monto inicial</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m3">
+                        <div class="input-field">
+                          <input id="hi-aporte-mensual" type="number" step="0.01" />
+                          <label for="hi-aporte-mensual">Aporte mensual</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m3">
+                        <div class="input-field">
+                          <input id="hi-tasa-anual" type="number" step="0.01" />
+                          <label for="hi-tasa-anual">Tasa anual (%)</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m3">
+                        <div class="input-field">
+                          <input id="hi-plazo-anios" type="number" />
+                          <label for="hi-plazo-anios">Plazo (años)</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-print">
+                      <div class="col s12 m6">
+                        <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hi-btn-calcular">Calcular</button>
+                      </div>
+                      <div class="col s12 m6">
+                        <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hi-btn-limpiar">Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="hi-resultado" class="grey-text text-darken-2"></div>
+                  </form>
+                </div>
               </div>
             </div>
 
-            <div id="hg-resultado" class="grey-text text-darken-2"></div>
-          </form>
+            <!-- Panel Objetivo de ahorro -->
+            <div id="herramienta-panel-objetivo" style="display:none;">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Objetivo de ahorro</span>
+                  <form id="form-herramienta-objetivo">
+                    <div class="row">
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <input id="ho-monto-objetivo" type="number" step="0.01" />
+                          <label for="ho-monto-objetivo">Monto objetivo</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <input id="ho-meses" type="number" />
+                          <label for="ho-meses">Meses</label>
+                        </div>
+                      </div>
+                      <div class="col s12 m4">
+                        <div class="input-field">
+                          <input id="ho-aporte-actual" type="number" step="0.01" />
+                          <label for="ho-aporte-actual">Aporte mensual actual (opcional)</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-print">
+                      <div class="col s12 m6">
+                        <button class="btn waves-effect waves-light btn-full-width" type="submit" id="ho-btn-calcular">Calcular</button>
+                      </div>
+                      <div class="col s12 m6">
+                        <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="ho-btn-limpiar">Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="ho-resultado" class="grey-text text-darken-2"></div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </section>

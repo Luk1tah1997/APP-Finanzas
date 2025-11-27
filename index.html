@@ -21,8 +21,10 @@
 <body>
 
   <!-- Navbar -->
+  <!-- temp-marker -->
   <nav class="no-print">
-    <div class="nav-wrapper container nav-layout">
+     <!-- uppercase-test -->
+     <div class="nav-wrapper container nav-layout">
       <!-- Izquierda: botón menú -->
       <a href="#!"
         id="btn-sidenav-toggle"
@@ -44,6 +46,11 @@
   </nav>
 
   <!-- Menú lateral -->
+        <li>
+          <a href="#section-herramientas" id="nav-herramientas" class="js-nav-link">
+            <i class="material-icons">build</i>Herramientas
+          </a>
+        </li>
   <ul id="slide-out" class="sidenav">
     <li>
       <a href="#section-filtros" id="nav-toggle-filtros">
@@ -75,10 +82,31 @@
       </a>
     </li>
 
-    <li>
-      <a href="#section-herramientas" id="nav-herramientas">
-        <i class="material-icons">build</i>Herramientas
-      </a>
+    <li class="no-padding">
+      <ul class="collapsible collapsible-accordion sidenav-collapsible">
+        <li>
+          <a class="collapsible-header" id="nav-herramientas">
+            <span class="collapsible-title">
+              <i class="material-icons">build</i>Herramientas
+            </span>
+            <i class="material-icons collapsible-arrow">expand_more</i>
+          </a>
+          <div class="collapsible-body">
+            <ul>
+              <li>
+                <a href="#herramienta-presupuesto" id="nav-herramientas-presupuesto">
+                  <i class="material-icons">attach_money</i>Presupuesto diario
+                </a>
+              </li>
+              <li>
+                <a href="#herramienta-grupal" id="nav-herramientas-grupal">
+                  <i class="material-icons">group</i>Gastos grupales
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
     </li>
 
     <li>
@@ -429,13 +457,11 @@
       </div>
     </section>
 
-    <!-- Sección Categorías -->
-    <!-- Sección Herramientas -->
     <section id="section-herramientas" class="section">
       <h5 class="section-title">Herramientas rápidas</h5>
-
+      
       <!-- Herramienta 1: Presupuesto diario -->
-      <div class="card">
+      <div class="card" id="herramienta-presupuesto">
         <div class="card-content">
           <span class="card-title">Presupuesto diario</span>
           <p class="grey-text text-darken-1">
@@ -460,10 +486,22 @@
 
             <div class="row no-print">
               <div class="col s12 m6">
-                <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hp-btn-calcular">Calcular</button>
+                <button
+                  class="btn waves-effect waves-light btn-full-width"
+                  type="submit"
+                  id="hp-btn-calcular"
+                >
+                  Calcular
+                </button>
               </div>
               <div class="col s12 m6">
-                <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hp-btn-limpiar">Limpiar</button>
+                <button
+                  class="btn grey lighten-1 black-text waves-effect btn-full-width"
+                  type="button"
+                  id="hp-btn-limpiar"
+                >
+                  Limpiar
+                </button>
               </div>
             </div>
 
@@ -473,7 +511,7 @@
       </div>
 
       <!-- Herramienta 2: Gastos grupales -->
-      <div class="card">
+      <div class="card" id="herramienta-grupal">
         <div class="card-content">
           <span class="card-title">Gastos grupales</span>
           <p class="grey-text text-darken-1">
@@ -485,30 +523,52 @@
               <div class="col s12 m6">
                 <div class="input-field">
                   <input id="hg-monto-total" type="number" step="0.01" />
-                  <label for="hg-monto-total">Monto total del gasto</label>
+                  <label for="hg-monto-total">Monto total</label>
                 </div>
               </div>
               <div class="col s12 m6">
                 <div class="input-field">
-                  <input id="hg-cantidad-personas" type="number" min="1" />
+                  <input id="hg-cantidad-personas" type="number" />
                   <label for="hg-cantidad-personas">Cantidad de personas</label>
                 </div>
               </div>
             </div>
 
-            <div id="hg-personas-container" style="display: none;">
-              <h6 class="grey-text">Detalle de personas</h6>
-              <div id="hg-personas-lista">
-                <!-- Generado dinÃ¡micamente -->
+            <!-- Contenedor de gestión de personas -->
+            <div id="hg-personas-container" class="row" style="display: none;">
+              <div class="col s12">
+                <button
+                  class="btn-small waves-effect waves-light"
+                  type="button"
+                  id="hg-btn-agregar-persona"
+                >
+                  <i class="material-icons left">person_add</i>
+                  Agregar persona
+                </button>
+              </div>
+              <div class="col s12">
+                <div id="hg-personas-lista"></div>
               </div>
             </div>
 
             <div class="row no-print">
               <div class="col s12 m6">
-                <button class="btn waves-effect waves-light btn-full-width" type="submit" id="hg-btn-calcular">Calcular</button>
+                <button
+                  class="btn waves-effect waves-light btn-full-width"
+                  type="submit"
+                  id="hg-btn-calcular"
+                >
+                  Calcular
+                </button>
               </div>
               <div class="col s12 m6">
-                <button class="btn grey lighten-1 black-text waves-effect btn-full-width" type="button" id="hg-btn-limpiar">Limpiar</button>
+                <button
+                  class="btn grey lighten-1 black-text waves-effect btn-full-width"
+                  type="button"
+                  id="hg-btn-limpiar"
+                >
+                  Limpiar
+                </button>
               </div>
             </div>
 
@@ -518,6 +578,7 @@
       </div>
     </section>
 
+    <!-- Sección Categorías -->
     <section id="section-categorias" class="section no-print hide">
       <h5 class="section-title">Categorías</h5>
       <div class="card">
@@ -926,7 +987,7 @@
         </div>
       </div>
 
-      <!-- Abrir calendario / timeline al iniciar -->
+      <!-- Abrir calendario / timeline / herramientas al iniciar -->
       <div class="row">
         <div class="col s12 m3">
           <label>
@@ -938,6 +999,12 @@
           <label>
             <input id="config-abrir-timeline" type="checkbox" class="filled-in">
             <span>Mostrar timeline al iniciar</span>
+          </label>
+        </div>
+        <div class="col s12 m3">
+          <label>
+            <input id="config-abrir-herramientas" type="checkbox" class="filled-in">
+            <span>Mostrar herramientas al iniciar</span>
           </label>
         </div>
       </div>
@@ -952,7 +1019,7 @@
         <div class="col s12 m4">
           <label>
             <input id="config-mostrar-grafico-forma" type="checkbox" class="filled-in">
-            <span>Mostrar gráfico \"Formas de pago\"</span>
+            <span>Mostrar gráfico "Formas de pago"</span>
           </label>
         </div>
       </div>
@@ -975,6 +1042,7 @@
     <div class="modal-content">
       <h5>Resultado: Presupuesto diario</h5>
       <div id="resultado-presupuesto-contenido" class="resultado-herramienta">
+        <!-- Generado por JS -->
       </div>
     </div>
     <div class="modal-footer">
@@ -987,6 +1055,7 @@
     <div class="modal-content">
       <h5>Resultado: Gastos grupales</h5>
       <div id="resultado-grupal-contenido" class="resultado-herramienta">
+        <!-- Generado por JS -->
       </div>
     </div>
     <div class="modal-footer">
@@ -999,6 +1068,7 @@
     <div class="modal-content">
       <h5>Historial de cálculos</h5>
       <div id="historial-herramientas-lista">
+        <!-- Generado por JS -->
       </div>
     </div>
     <div class="modal-footer">
@@ -1008,7 +1078,6 @@
       <a href="#!" class="modal-close btn-flat">Cerrar</a>
     </div>
   </div>
-
 
   <!-- Input oculto para importar backup -->
   <input id="input-importar-backup"

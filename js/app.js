@@ -12,7 +12,8 @@ const STORAGE_KEYS = {
   MOVIMIENTOS: 'finanzas_movimientos',
   CATEGORIAS: 'finanzas_categorias',
   CONFIG: 'finanzas_config',
-  CATEGORIA_ICONOS: 'finanzas_categoria_iconos'
+  CATEGORIA_ICONOS: 'finanzas_categoria_iconos',
+  HISTORIAL_HERRAMIENTAS: 'finanzas_historial_herramientas'
 };
 
 // Categorías por tipo
@@ -63,6 +64,7 @@ const DEFAULT_CONFIG = {
   mostrarIconosCategorias: true,
   abrirCalendarioAlInicio: false,
   abrirTimelineAlInicio: false,
+  abrirHerramientasAlInicio: false,
   calendarioVistaPreferida: 'mes' // 'mes' | 'semana' | 'anio'
   ,
   mostrarGraficoFormaPago: true
@@ -144,6 +146,7 @@ let modalMovimientoTitulo;
 let chkConfigMostrarIconos;
 let chkConfigAbrirCalendario;
 let chkConfigAbrirTimeline;
+let chkConfigAbrirHerramientas;
 let selectConfigCalendarioVista;
 
 // Resumen símbolos
@@ -188,6 +191,7 @@ let navImprimir;
 let btnSidenavToggle;
 let navCalendario;
 let navTimeline;
+let navHerramientas;
 
 // Categorías DOM
 let sectionCategorias;
@@ -197,6 +201,10 @@ let formCategoria;
 let selectCategoriaTipo;
 let inputCategoriaNombre;
 let navCategorias;
+
+// Navegación subsecciones herramientas
+let navHerramientasPresupuesto;
+let navHerramientasGrupal;
 
 // Calendario DOM
 let calendarGridEl;
@@ -219,10 +227,36 @@ let chkTimelineIngresos;
 let chkTimelineGastos;
 let chkTimelineBalance;
 
+// Herramientas DOM
+let formHerramientaPresupuesto;
+let hpMontoDisponibleElem;
+let hpDiasRestantesElem;
+let hpResultadoElem;
+let hpBtnLimpiarElem;
+
+let formHerramientaGrupal;
+let hgMontoTotalElem;
+let hgCantidadPersonasElem;
+let hgPersonasContainerElem;
+let hgBtnAgregarPersonaElem;
+let hgPersonasListaElem;
+let hgResultadoElem;
+let hgBtnLimpiarElem;
+let sectionHerramientas;
+
+let modalResultadoPresupuesto;
+let modalResultadoGrupal;
+let modalHistorialHerramientas;
+let btnVerHistorialHerramientas;
+let btnLimpiarHistorial;
+
 // Instancias de Materialize
 let modalMovimientoInstance;
 let modalEliminarInstance;
 let modalConfigInstance;
+let modalResultadoPresupuestoInstance;
+let modalResultadoGrupalInstance;
+let modalHistorialHerramientasInstance;
 let sidenavInstance;
 
 //////////////////////////////////////////////////////////////////////
@@ -422,7 +456,15 @@ function cargarConfigDesdeStorage() {
         typeof cfg.abrirTimelineAlInicio === 'boolean'
           ? cfg.abrirTimelineAlInicio
           : DEFAULT_CONFIG.abrirTimelineAlInicio,
-      calendarioVistaPreferida: calendarioVista
+      abrirHerramientasAlInicio:
+        typeof cfg.abrirHerramientasAlInicio === 'boolean'
+          ? cfg.abrirHerramientasAlInicio
+          : DEFAULT_CONFIG.abrirHerramientasAlInicio,
+      calendarioVistaPreferida: calendarioVista,
+      mostrarGraficoFormaPago:
+        typeof cfg.mostrarGraficoFormaPago === 'boolean'
+          ? cfg.mostrarGraficoFormaPago
+          : DEFAULT_CONFIG.mostrarGraficoFormaPago
     };
   } catch (e) {
     console.error('Error cargando config desde localStorage:', e);
@@ -548,6 +590,9 @@ function poblarConfigEnUI() {
   if (chkConfigAbrirTimeline) {
     chkConfigAbrirTimeline.checked = !!config.abrirTimelineAlInicio;
   }
+  if (chkConfigAbrirHerramientas) {
+    chkConfigAbrirHerramientas.checked = !!config.abrirHerramientasAlInicio;
+  }
 }
 
 function guardarConfigDesdeUI() {
@@ -580,6 +625,9 @@ function guardarConfigDesdeUI() {
   const abrirTimeline = chkConfigAbrirTimeline
     ? chkConfigAbrirTimeline.checked
     : false;
+  const abrirHerramientas = chkConfigAbrirHerramientas
+    ? chkConfigAbrirHerramientas.checked
+    : false;
 
   const calendarioVista = selectConfigCalendarioVista
     ? selectConfigCalendarioVista.value || 'mes'
@@ -596,6 +644,7 @@ function guardarConfigDesdeUI() {
     mostrarGraficoFormaPago: mostrarGraficoForma,
     abrirCalendarioAlInicio: abrirCalendario,
     abrirTimelineAlInicio: abrirTimeline,
+    abrirHerramientasAlInicio: abrirHerramientas,
     calendarioVistaPreferida: calendarioVista
   };
 
@@ -622,6 +671,7 @@ function guardarConfigDesdeUI() {
   setMostrarGraficoForma(!!config.mostrarGraficoFormaPago);
   setCalendarioVisible(config.abrirCalendarioAlInicio);
   setTimelineVisible(config.abrirTimelineAlInicio);
+  setHerramientasVisible(!!config.abrirHerramientasAlInicio);
 
   if (modalConfigInstance) {
     modalConfigInstance.close();
@@ -776,6 +826,11 @@ document.addEventListener('DOMContentLoaded', function () {
       ? config.abrirTimelineAlInicio
       : false
   );
+  setHerramientasVisible(
+    typeof config.abrirHerramientasAlInicio === 'boolean'
+      ? config.abrirHerramientasAlInicio
+      : false
+  );
 
   if (config.abrirModalAlInicio) {
     abrirModalNuevoMovimiento();
@@ -853,6 +908,7 @@ function cacheDomElements() {
   chkConfigMostrarIconos = document.getElementById('config-mostrar-iconos');
   chkConfigAbrirCalendario = document.getElementById('config-abrir-calendario');
   chkConfigAbrirTimeline = document.getElementById('config-abrir-timeline');
+  chkConfigAbrirHerramientas = document.getElementById('config-abrir-herramientas');
   selectConfigCalendarioVista =
     document.getElementById('config-calendario-vista');
 
@@ -870,6 +926,7 @@ function cacheDomElements() {
   btnSidenavToggle = document.getElementById('btn-sidenav-toggle');
   navCalendario = document.getElementById('nav-calendario');
   navTimeline = document.getElementById('nav-timeline');
+  navHerramientas = document.getElementById('nav-herramientas');
 
   // Categorías
   sectionCategorias = document.getElementById('section-categorias');
@@ -879,6 +936,10 @@ function cacheDomElements() {
   selectCategoriaTipo = document.getElementById('categoria-tipo');
   inputCategoriaNombre = document.getElementById('categoria-nombre');
   navCategorias = document.getElementById('nav-categorias');
+
+  // Navegación subsecciones herramientas
+  navHerramientasPresupuesto = document.getElementById('nav-herramientas-presupuesto');
+  navHerramientasGrupal = document.getElementById('nav-herramientas-grupal');
 
   // Calendario
   calendarGridEl = document.getElementById('calendar-grid');
@@ -900,6 +961,29 @@ function cacheDomElements() {
   chkTimelineIngresos = document.getElementById('timeline-toggle-ingresos');
   chkTimelineGastos = document.getElementById('timeline-toggle-gastos');
   chkTimelineBalance = document.getElementById('timeline-toggle-balance');
+
+  // Herramientas
+  formHerramientaPresupuesto = document.getElementById('form-herramienta-presupuesto');
+  hpMontoDisponibleElem = document.getElementById('hp-monto-disponible');
+  hpDiasRestantesElem = document.getElementById('hp-dias-restantes');
+  hpResultadoElem = document.getElementById('hp-resultado');
+  hpBtnLimpiarElem = document.getElementById('hp-btn-limpiar');
+
+  formHerramientaGrupal = document.getElementById('form-herramienta-grupal');
+  hgMontoTotalElem = document.getElementById('hg-monto-total');
+  hgCantidadPersonasElem = document.getElementById('hg-cantidad-personas');
+  hgPersonasContainerElem = document.getElementById('hg-personas-container');
+  hgBtnAgregarPersonaElem = document.getElementById('hg-btn-agregar-persona');
+  hgPersonasListaElem = document.getElementById('hg-personas-lista');
+  hgResultadoElem = document.getElementById('hg-resultado');
+  hgBtnLimpiarElem = document.getElementById('hg-btn-limpiar');
+  sectionHerramientas = document.getElementById('section-herramientas');
+
+  modalResultadoPresupuesto = document.getElementById('modal-resultado-presupuesto');
+  modalResultadoGrupal = document.getElementById('modal-resultado-grupal');
+  modalHistorialHerramientas = document.getElementById('modal-historial-herramientas');
+  btnVerHistorialHerramientas = document.getElementById('btn-ver-historial-herramientas');
+  btnLimpiarHistorial = document.getElementById('btn-limpiar-historial');
 
   // Calendario símbolos
   calendarSimboloIngresosEl =
@@ -1005,6 +1089,31 @@ function configurarEventos() {
     });
   }
 
+  // Navegación subsecciones herramientas
+  if (navHerramientasPresupuesto) {
+    navHerramientasPresupuesto.addEventListener('click', function (e) {
+      e.preventDefault();
+      setHerramientasVisible(true);
+      const card = document.getElementById('herramienta-presupuesto');
+      if (card && card.scrollIntoView) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      cerrarSidenav();
+    });
+  }
+
+  if (navHerramientasGrupal) {
+    navHerramientasGrupal.addEventListener('click', function (e) {
+      e.preventDefault();
+      setHerramientasVisible(true);
+      const card = document.getElementById('herramienta-grupal');
+      if (card && card.scrollIntoView) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      cerrarSidenav();
+    });
+  }
+
   if (navCalendario) {
     navCalendario.addEventListener('click', function (e) {
       e.preventDefault();
@@ -1026,6 +1135,28 @@ function configurarEventos() {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       cerrarSidenav();
+    });
+  }
+
+  if (navHerramientas) {
+    navHerramientas.addEventListener('click', function (e) {
+      const isCollapsibleHeader = navHerramientas.classList.contains('collapsible-header');
+      setHerramientasVisible(true);
+      const section = sectionHerramientas || document.getElementById('section-herramientas');
+      if (isCollapsibleHeader) {
+        // Dejar que el collapsible maneje la apertura; sólo hacemos scroll a la sección
+        setTimeout(function () {
+          if (section && section.scrollIntoView) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 0);
+      } else {
+        e.preventDefault();
+        if (section && section.scrollIntoView) {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        cerrarSidenav();
+      }
     });
   }
 
@@ -1240,6 +1371,42 @@ function configurarEventos() {
       refrescarTimelineDesdeFiltros
     );
   }
+
+  if (formHerramientaPresupuesto) {
+    formHerramientaPresupuesto.addEventListener(
+      'submit',
+      manejarSubmitHerramientaPresupuesto
+    );
+  }
+  if (hpBtnLimpiarElem) {
+    hpBtnLimpiarElem.addEventListener('click', function (e) {
+      e.preventDefault();
+      limpiarHerramientaPresupuesto();
+    });
+  }
+
+  if (formHerramientaGrupal) {
+    formHerramientaGrupal.addEventListener(
+      'submit',
+      manejarSubmitHerramientaGrupal
+    );
+  }
+  if (hgBtnLimpiarElem) {
+    hgBtnLimpiarElem.addEventListener('click', function (e) {
+      e.preventDefault();
+      limpiarHerramientaGrupal();
+    });
+  }
+
+  // Evento para agregar persona en gastos grupales
+  if (hgBtnAgregarPersonaElem) {
+    hgBtnAgregarPersonaElem.addEventListener('click', agregarPersonaAGastosGrupales);
+  }
+
+  // Evento para sincronizar cantidad de personas con las filas
+  if (hgCantidadPersonasElem) {
+    hgCantidadPersonasElem.addEventListener('input', sincronizarFilasPersonasConCantidad);
+  }
 }
 
 function inicializarMaterialize() {
@@ -1257,6 +1424,12 @@ function inicializarMaterialize() {
               modalEliminarInstance = instance;
             } else if (elem && elem.id === 'modal-config') {
               modalConfigInstance = instance;
+            } else if (elem && elem.id === 'modal-resultado-presupuesto') {
+              modalResultadoPresupuestoInstance = instance;
+            } else if (elem && elem.id === 'modal-resultado-grupal') {
+              modalResultadoGrupalInstance = instance;
+            } else if (elem && elem.id === 'modal-historial-herramientas') {
+              modalHistorialHerramientasInstance = instance;
             }
           });
         }
@@ -1298,6 +1471,15 @@ function inicializarMaterialize() {
     }
   } catch (err) {
     console.error('Error inicializando selects Materialize:', err);
+  }
+
+  try {
+    if (window.M && M.Collapsible) {
+      const collapsibles = document.querySelectorAll('.collapsible');
+      if (collapsibles && collapsibles.length) M.Collapsible.init(collapsibles);
+    }
+  } catch (err) {
+    console.error('Error inicializando collapsibles Materialize:', err);
   }
 
   try {
@@ -2271,6 +2453,446 @@ function actualizarChartTimeline(listaMovimientos, simbolo) {
   });
 }
 
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: Herramientas
+//////////////////////////////////////////////////////////////////////
+
+// ====================
+// ====================
+//  Presupuesto diario
+// ====================
+
+function manejarSubmitHerramientaPresupuesto(event) {
+  event.preventDefault();
+  if (!hpMontoDisponibleElem || !hpDiasRestantesElem || !hpResultadoElem) return;
+
+  const montoDisponible = parseFloat(hpMontoDisponibleElem.value || '0');
+  const diasRestantes = parseInt(hpDiasRestantesElem.value || '0', 10);
+
+  if (!montoDisponible || montoDisponible <= 0 || !diasRestantes || diasRestantes <= 0) {
+    hpResultadoElem.textContent = 'Completá un monto disponible y días restantes válidos.';
+    return;
+  }
+
+  const porDia = montoDisponible / diasRestantes;
+  const simbolo = obtenerSimboloMoneda();
+
+  hpResultadoElem.textContent =
+    'Podés gastar ' +
+    simbolo +
+    ' ' +
+    porDia.toLocaleString('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) +
+    ' por día.';
+}
+
+function limpiarHerramientaPresupuesto() {
+  if (!hpMontoDisponibleElem || !hpDiasRestantesElem || !hpResultadoElem) return;
+  hpMontoDisponibleElem.value = '';
+  hpDiasRestantesElem.value = '';
+  hpResultadoElem.textContent = '';
+  if (window.M && M.updateTextFields) {
+    M.updateTextFields();
+  }
+}
+
+// ====================
+//  Gastos grupales
+// ====================
+
+// Funciones auxiliares para gastos grupales
+function calcularSumaAportes() {
+  if (!hgPersonasListaElem) return 0;
+  const filas = hgPersonasListaElem.querySelectorAll('.hg-persona-row');
+  let suma = 0;
+  filas.forEach(fila => {
+    const aporteInput = fila.querySelector('.hg-persona-aporte');
+    const aporte = parseFloat(aporteInput?.value || '0');
+    suma += aporte;
+  });
+  return suma;
+}
+
+function validarAporteIndividual(aporteInput) {
+  if (!aporteInput || !hgMontoTotalElem) return true;
+  
+  const montoTotal = parseFloat(hgMontoTotalElem.value || '0');
+  const aporte = parseFloat(aporteInput.value || '0');
+  
+  // Si no hay monto total, no validar
+  if (montoTotal <= 0) {
+    aporteInput.classList.remove('invalid');
+    return true;
+  }
+  
+  // Validar que aporte individual no supere el total
+  if (aporte > montoTotal) {
+    aporteInput.classList.add('invalid');
+    if (hgResultadoElem) {
+      hgResultadoElem.innerHTML = '<span style="color: #ef5350;">El aporte individual no puede ser mayor al monto total.</span>';
+    }
+    return false;
+  }
+  
+  aporteInput.classList.remove('invalid');
+  return true;
+}
+
+function validarSumaAportes() {
+  if (!hgMontoTotalElem) return true;
+  
+  const montoTotal = parseFloat(hgMontoTotalElem.value || '0');
+  
+  // Si no hay monto total, no validar
+  if (montoTotal <= 0) return true;
+  
+  const suma = calcularSumaAportes();
+  
+  if (suma > montoTotal) {
+    if (hgResultadoElem) {
+      hgResultadoElem.innerHTML = '<span style="color: #ef5350;">La suma de aportes (' + suma.toFixed(2) + ') no puede superar el monto total (' + montoTotal.toFixed(2) + ').</span>';
+    }
+    return false;
+  }
+  
+  return true;
+}
+
+function ajustarUltimaPersonaAlTotal() {
+  if (!hgMontoTotalElem || !hgPersonasListaElem) return;
+  
+  const montoTotal = parseFloat(hgMontoTotalElem.value || '0');
+  if (montoTotal <= 0) return;
+  
+  const filas = hgPersonasListaElem.querySelectorAll('.hg-persona-row');
+  if (filas.length < 2) return;
+  
+  const ultimaFila = filas[filas.length - 1];
+  const aporteInput = ultimaFila.querySelector('.hg-persona-aporte');
+  if (!aporteInput) return;
+  
+  // Calcular suma de todos menos el último
+  let sumaSinUltimo = 0;
+  for (let i = 0; i < filas.length - 1; i++) {
+    const input = filas[i].querySelector('.hg-persona-aporte');
+    sumaSinUltimo += parseFloat(input?.value || '0');
+  }
+  
+  const restante = montoTotal - sumaSinUltimo;
+  if (restante >= 0) {
+    aporteInput.value = restante.toFixed(2);
+    if (window.M && M.updateTextFields) {
+      M.updateTextFields();
+    }
+  }
+}
+
+function calcularTransferencias(personas, promedio) {
+  // Crear listas de acreedores y deudores
+  const acreedores = [];
+  const deudores = [];
+  
+  personas.forEach(p => {
+    const diferencia = p.aporte - promedio;
+    if (diferencia > 0.01) {
+      acreedores.push({ nombre: p.nombre, monto: diferencia });
+    } else if (diferencia < -0.01) {
+      deudores.push({ nombre: p.nombre, monto: Math.abs(diferencia) });
+    }
+  });
+  
+  // Algoritmo greedy para generar transferencias
+  const transferencias = [];
+  let i = 0, j = 0;
+  
+  while (i < deudores.length && j < acreedores.length) {
+    const deudor = deudores[i];
+    const acreedor = acreedores[j];
+    
+    const montoPago = Math.min(deudor.monto, acreedor.monto);
+    
+    transferencias.push({
+      de: deudor.nombre,
+      para: acreedor.nombre,
+      monto: montoPago
+    });
+    
+    deudor.monto -= montoPago;
+    acreedor.monto -= montoPago;
+    
+    if (deudor.monto < 0.01) i++;
+    if (acreedor.monto < 0.01) j++;
+  }
+  
+  return transferencias;
+}
+
+function crearFilaPersonaGrupal(indice) {
+  const div = document.createElement('div');
+  div.className = 'hg-persona-row';
+  div.dataset.indice = indice;
+  div.innerHTML = `
+    <div class="input-field">
+      <input type="text" class="hg-persona-nombre" placeholder="Nombre" />
+    </div>
+    <div class="input-field">
+      <input type="number" step="0.01" class="hg-persona-aporte" placeholder="Aporte" />
+    </div>
+    <button type="button" class="btn-small red hg-persona-eliminar">
+      <i class="material-icons">close</i>
+    </button>
+  `;
+  
+  // Evento eliminar
+  div.querySelector('.hg-persona-eliminar').addEventListener('click', function() {
+    div.remove();
+    // Si ya no hay filas, ocultar el contenedor
+    if (!hgPersonasListaElem.querySelector('.hg-persona-row')) {
+      hgPersonasContainerElem.style.display = 'none';
+    }
+  });
+
+  // Evento de validación en input de aporte
+  const aporteInput = div.querySelector('.hg-persona-aporte');
+  aporteInput.addEventListener('input', function() {
+    validarAporteIndividual(aporteInput);
+  });
+  
+  return div;
+}
+
+function agregarPersonaAGastosGrupales() {
+  if (!hgPersonasListaElem || !hgPersonasContainerElem) return;
+  
+  // Mostrar contenedor si está oculto
+  if (hgPersonasContainerElem.style.display === 'none') {
+    hgPersonasContainerElem.style.display = '';
+  }
+  
+  const filasActuales = hgPersonasListaElem.querySelectorAll('.hg-persona-row').length;
+  const nuevaFila = crearFilaPersonaGrupal(filasActuales + 1);
+  hgPersonasListaElem.appendChild(nuevaFila);
+
+  // Autocompletar aporte si hay monto total
+  const montoTotal = parseFloat(hgMontoTotalElem?.value || '0');
+  if (montoTotal > 0) {
+    const sumaAportesActuales = calcularSumaAportes();
+    const restante = montoTotal - sumaAportesActuales;
+    if (restante > 0) {
+      const aporteInput = nuevaFila.querySelector('.hg-persona-aporte');
+      if (aporteInput) {
+        aporteInput.value = restante.toFixed(2);
+        if (window.M && M.updateTextFields) {
+          M.updateTextFields();
+        }
+      }
+    }
+  }
+}
+
+function sincronizarFilasPersonasConCantidad() {
+  if (!hgCantidadPersonasElem || !hgPersonasListaElem || !hgPersonasContainerElem) return;
+  
+  const cantidad = parseInt(hgCantidadPersonasElem.value || '0', 10);
+  
+  if (cantidad <= 0) {
+    // Limpiar todas las filas y ocultar contenedor
+    hgPersonasListaElem.innerHTML = '';
+    hgPersonasContainerElem.style.display = 'none';
+    return;
+  }
+  
+  // Mostrar contenedor
+  hgPersonasContainerElem.style.display = '';
+  
+  const filasActuales = hgPersonasListaElem.querySelectorAll('.hg-persona-row');
+  const cantidadFilas = filasActuales.length;
+  const montoTotal = parseFloat(hgMontoTotalElem?.value || '0');
+  
+  if (cantidad > cantidadFilas) {
+    // Agregar filas faltantes
+    for (let i = cantidadFilas; i < cantidad; i++) {
+      const nuevaFila = crearFilaPersonaGrupal(i + 1);
+      hgPersonasListaElem.appendChild(nuevaFila);
+      
+      // Autocompletar última persona si hay monto total
+      if (i === cantidad - 1 && montoTotal > 0) {
+        const sumaAportesActuales = calcularSumaAportes();
+        const restante = montoTotal - sumaAportesActuales;
+        if (restante > 0) {
+          const aporteInput = nuevaFila.querySelector('.hg-persona-aporte');
+          if (aporteInput) {
+            aporteInput.value = restante.toFixed(2);
+            if (window.M && M.updateTextFields) {
+              M.updateTextFields();
+            }
+          }
+        }
+      }
+    }
+  } else if (cantidad < cantidadFilas) {
+    // Eliminar filas sobrantes
+    for (let i = cantidadFilas - 1; i >= cantidad; i--) {
+      filasActuales[i].remove();
+    }
+  }
+}
+
+function obtenerPersonasGastoGrupal() {
+  if (!hgPersonasListaElem) return [];
+  
+  const filas = hgPersonasListaElem.querySelectorAll('.hg-persona-row');
+  const personas = [];
+  
+  filas.forEach((fila) => {
+    const nombreInput = fila.querySelector('.hg-persona-nombre');
+    const aporteInput = fila.querySelector('.hg-persona-aporte');
+    
+    const nombre = nombreInput?.value.trim() || 'Sin nombre';
+    const aporte = parseFloat(aporteInput?.value || '0');
+    
+    personas.push({ nombre, aporte });
+  });
+  
+  return personas;
+}
+
+function renderizarResultadoGastoGrupal(total, personas) {
+  if (!hgResultadoElem) return;
+  
+  const simbolo = obtenerSimboloMoneda();
+  
+  // Calcular promedio
+  const promedioPorPersona = total / personas.length;
+  
+  // Calcular transferencias
+  const transferencias = calcularTransferencias(personas, promedioPorPersona);
+  
+  // Construir HTML del resultado
+  let html = '<div style="margin-top: 1rem;">';
+  html += '<p><strong>Monto total:</strong> ' + simbolo + ' ' + total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>';
+  html += '<p><strong>Promedio por persona:</strong> ' + simbolo + ' ' + promedioPorPersona.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>';
+  
+  if (transferencias.length > 0) {
+    html += '<p><strong>Transferencias necesarias:</strong></p>';
+    html += '<ul class="herramienta-grupal-lista">';
+    
+    transferencias.forEach(t => {
+      html += '<li><span class="persona-paga">' + t.de + '</span> debe pagar a <span class="persona-recibe">' + t.para + '</span> ' + simbolo + ' ' + t.monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</li>';
+    });
+    
+    html += '</ul>';
+  } else {
+    html += '<p style="color: #66bb6a;">✓ Todos los aportes están balanceados.</p>';
+  }
+  
+  html += '</div>';
+  hgResultadoElem.innerHTML = html;
+}
+
+function manejarSubmitHerramientaGrupal(event) {
+  event.preventDefault();
+  if (!hgMontoTotalElem || !hgCantidadPersonasElem || !hgResultadoElem) return;
+
+  const montoTotal = parseFloat(hgMontoTotalElem.value || '0');
+  const cantidadPersonas = parseInt(hgCantidadPersonasElem.value || '0', 10);
+
+  if (!montoTotal || montoTotal <= 0 || !cantidadPersonas || cantidadPersonas <= 0) {
+    hgResultadoElem.innerHTML = '<span style="color: #ef5350;">Completá un monto total y una cantidad de personas válidos.</span>';
+    return;
+  }
+
+  // Verificar si hay personas con aportes detallados
+  const personas = obtenerPersonasGastoGrupal();
+  
+  if (personas.length > 0) {
+    // Ajustar última persona si la suma no llega al total
+    const sumaAportes = calcularSumaAportes();
+    if (personas.length >= 2 && sumaAportes < montoTotal) {
+      ajustarUltimaPersonaAlTotal();
+      // Recalcular personas después del ajuste
+      const personasActualizadas = obtenerPersonasGastoGrupal();
+      
+      // Validar que ningún aporte supere el total
+      let hayError = false;
+      personasActualizadas.forEach(p => {
+        if (p.aporte > montoTotal) {
+          hayError = true;
+        }
+      });
+      
+      if (hayError) {
+        hgResultadoElem.innerHTML = '<span style="color: #ef5350;">Hay aportes que superan el monto total. Verificá los valores.</span>';
+        return;
+      }
+      
+      // Validar suma total
+      if (!validarSumaAportes()) {
+        return;
+      }
+      
+      // Modo detallado: calcular balances y transferencias
+      renderizarResultadoGastoGrupal(montoTotal, personasActualizadas);
+    } else {
+      // Validar que ningún aporte supere el total
+      let hayError = false;
+      personas.forEach(p => {
+        if (p.aporte > montoTotal) {
+          hayError = true;
+        }
+      });
+      
+      if (hayError) {
+        hgResultadoElem.innerHTML = '<span style="color: #ef5350;">Hay aportes que superan el monto total. Verificá los valores.</span>';
+        return;
+      }
+      
+      // Validar suma total
+      if (!validarSumaAportes()) {
+        return;
+      }
+      
+      // Modo detallado: calcular balances y transferencias
+      renderizarResultadoGastoGrupal(montoTotal, personas);
+    }
+  } else {
+    // Modo simple: división equitativa
+    const porPersona = montoTotal / cantidadPersonas;
+    const simbolo = obtenerSimboloMoneda();
+
+    hgResultadoElem.innerHTML =
+      '<div style="margin-top: 1rem;"><p>Cada persona debe aportar ' +
+      simbolo +
+      ' ' +
+      porPersona.toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) +
+      '.</p></div>';
+  }
+}
+
+function limpiarHerramientaGrupal() {
+  if (!hgMontoTotalElem || !hgCantidadPersonasElem || !hgResultadoElem) return;
+  hgMontoTotalElem.value = '';
+  hgCantidadPersonasElem.value = '';
+  hgResultadoElem.innerHTML = '';
+  
+  // Limpiar personas
+  if (hgPersonasListaElem) {
+    hgPersonasListaElem.innerHTML = '';
+  }
+  if (hgPersonasContainerElem) {
+    hgPersonasContainerElem.style.display = 'none';
+  }
+  
+  if (window.M && M.updateTextFields) {
+    M.updateTextFields();
+  }
+}
+
 // ====================
 //  Índice de movimientos por día
 // ====================
@@ -2755,6 +3377,13 @@ function setCategoriasVisible(visible) {
   if (!sectionCategorias) return;
   if (visible) sectionCategorias.classList.remove('hide');
   else sectionCategorias.classList.add('hide');
+}
+
+function setHerramientasVisible(visible) {
+  const section = sectionHerramientas || document.getElementById('section-herramientas');
+  if (!section) return;
+  if (visible) section.classList.remove('hide');
+  else section.classList.add('hide');
 }
 
 function cerrarSidenav() {

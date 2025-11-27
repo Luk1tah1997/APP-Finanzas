@@ -67,7 +67,11 @@ const DEFAULT_CONFIG = {
   abrirHerramientasAlInicio: false,
   calendarioVistaPreferida: 'mes' // 'mes' | 'semana' | 'anio'
   ,
-  mostrarGraficoFormaPago: true
+  mostrarGraficoFormaPago: true,
+  tasasDivisas: {
+    USD: 1000, // 1 USD = 1000 ARS (por defecto)
+    EUR: 1100  // 1 EUR = 1100 ARS (por defecto)
+  }
 };
 
 // Instancias de gráficos (Chart.js)
@@ -179,6 +183,8 @@ let chkConfigAbrirModal;
 let btnGuardarConfig;
 let btnOpenConfigModal;
 let chkConfigMostrarGraficoForma;
+let inputConfigTasaUSD;
+let inputConfigTasaEUR;
 
 // Sidenav DOM
 let navToggleFiltros;
@@ -460,6 +466,10 @@ function cargarConfigDesdeStorage() {
         ? cfg.calendarioVistaPreferida
         : 'mes';
 
+    const tasas = (cfg.tasasDivisas && typeof cfg.tasasDivisas === 'object') ? cfg.tasasDivisas : {};
+    const tasaUSD = typeof tasas.USD === 'number' && tasas.USD > 0 ? tasas.USD : DEFAULT_CONFIG.tasasDivisas.USD;
+    const tasaEUR = typeof tasas.EUR === 'number' && tasas.EUR > 0 ? tasas.EUR : DEFAULT_CONFIG.tasasDivisas.EUR;
+
     return {
       tema: cfg.tema === 'oscuro' ? 'oscuro' : 'claro',
       monedaSimbolo:
@@ -502,7 +512,8 @@ function cargarConfigDesdeStorage() {
       mostrarGraficoFormaPago:
         typeof cfg.mostrarGraficoFormaPago === 'boolean'
           ? cfg.mostrarGraficoFormaPago
-          : DEFAULT_CONFIG.mostrarGraficoFormaPago
+          : DEFAULT_CONFIG.mostrarGraficoFormaPago,
+      tasasDivisas: { USD: tasaUSD, EUR: tasaEUR }
     };
   } catch (e) {
     console.error('Error cargando config desde localStorage:', e);
@@ -631,6 +642,17 @@ function poblarConfigEnUI() {
   if (chkConfigAbrirHerramientas) {
     chkConfigAbrirHerramientas.checked = !!config.abrirHerramientasAlInicio;
   }
+
+  // Tasas de divisas
+  if (inputConfigTasaUSD) {
+    inputConfigTasaUSD.value = (config.tasasDivisas && config.tasasDivisas.USD) ? String(config.tasasDivisas.USD) : String(DEFAULT_CONFIG.tasasDivisas.USD);
+  }
+  if (inputConfigTasaEUR) {
+    inputConfigTasaEUR.value = (config.tasasDivisas && config.tasasDivisas.EUR) ? String(config.tasasDivisas.EUR) : String(DEFAULT_CONFIG.tasasDivisas.EUR);
+  }
+  if (window.M && M.updateTextFields) {
+    M.updateTextFields();
+  }
 }
 
 function guardarConfigDesdeUI() {
@@ -671,6 +693,14 @@ function guardarConfigDesdeUI() {
     ? selectConfigCalendarioVista.value || 'mes'
     : 'mes';
 
+  // Tasas de cambio (validación)
+  let nuevaTasaUSD = inputConfigTasaUSD ? parseFloat(inputConfigTasaUSD.value || '') : NaN;
+  let nuevaTasaEUR = inputConfigTasaEUR ? parseFloat(inputConfigTasaEUR.value || '') : NaN;
+  if (Number.isNaN(nuevaTasaUSD) || nuevaTasaUSD <= 0 || Number.isNaN(nuevaTasaEUR) || nuevaTasaEUR <= 0) {
+    mostrarMensaje('Completá tasas de cambio válidas para USD y EUR (> 0).');
+    return;
+  }
+
   config = {
     tema: nuevoTema,
     monedaSimbolo: nuevoSimbolo,
@@ -683,7 +713,8 @@ function guardarConfigDesdeUI() {
     abrirCalendarioAlInicio: abrirCalendario,
     abrirTimelineAlInicio: abrirTimeline,
     abrirHerramientasAlInicio: abrirHerramientas,
-    calendarioVistaPreferida: calendarioVista
+    calendarioVistaPreferida: calendarioVista,
+    tasasDivisas: { USD: nuevaTasaUSD, EUR: nuevaTasaEUR }
   };
 
   guardarConfigEnStorage(config);
@@ -953,6 +984,8 @@ function cacheDomElements() {
   chkConfigAbrirHerramientas = document.getElementById('config-abrir-herramientas');
   selectConfigCalendarioVista =
     document.getElementById('config-calendario-vista');
+  inputConfigTasaUSD = document.getElementById('config-tasa-usd');
+  inputConfigTasaEUR = document.getElementById('config-tasa-eur');
 
   btnGuardarConfig = document.getElementById('btn-guardar-config');
   btnOpenConfigModal = document.getElementById('btn-open-config-modal');
@@ -3024,11 +3057,31 @@ function limpiarHerramientaGrupal() {
 //  Conversor de divisas
 // ====================
 
-const TASAS_DIVISAS = {
-  ARS: { ARS: 1, USD: 1 / 1000, EUR: 1 / 1100 },
-  USD: { ARS: 1000, USD: 1, EUR: 1.1 },
-  EUR: { ARS: 1100, USD: 0.9, EUR: 1 }
-};
+function obtenerTasasDivisas() {
+  const defUSD = DEFAULT_CONFIG.tasasDivisas.USD;
+  const defEUR = DEFAULT_CONFIG.tasasDivisas.EUR;
+  const tasaUSD = (config && config.tasasDivisas && typeof config.tasasDivisas.USD === 'number' && config.tasasDivisas.USD > 0)
+    ? config.tasasDivisas.USD
+    : defUSD;
+  const tasaEUR = (config && config.tasasDivisas && typeof config.tasasDivisas.EUR === 'number' && config.tasasDivisas.EUR > 0)
+    ? config.tasasDivisas.EUR
+    : defEUR;
+  return { USD: tasaUSD, EUR: tasaEUR };
+}
+
+function obtenerTasaConversion(origen, destino) {
+  if (origen === destino) return 1;
+  const tasas = obtenerTasasDivisas();
+  const USDenARS = tasas.USD; // 1 USD = USDenARS ARS
+  const EURenARS = tasas.EUR; // 1 EUR = EURenARS ARS
+  if (origen === 'ARS' && destino === 'USD') return 1 / USDenARS;
+  if (origen === 'ARS' && destino === 'EUR') return 1 / EURenARS;
+  if (origen === 'USD' && destino === 'ARS') return USDenARS;
+  if (origen === 'EUR' && destino === 'ARS') return EURenARS;
+  if (origen === 'USD' && destino === 'EUR') return USDenARS / EURenARS;
+  if (origen === 'EUR' && destino === 'USD') return EURenARS / USDenARS;
+  return null;
+}
 
 function manejarSubmitHerramientaDivisas(event) {
   event.preventDefault();
@@ -3040,7 +3093,7 @@ function manejarSubmitHerramientaDivisas(event) {
     hdResultadoElem.innerHTML = '<span style="color:#ef5350;">Ingresá un monto válido.</span>';
     return;
   }
-  const tasa = (TASAS_DIVISAS[origen] && TASAS_DIVISAS[origen][destino]) ? TASAS_DIVISAS[origen][destino] : null;
+  const tasa = obtenerTasaConversion(origen, destino);
   if (!tasa) {
     hdResultadoElem.innerHTML = '<span style="color:#ef5350;">Monedas no soportadas.</span>';
     return;

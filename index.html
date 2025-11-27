@@ -82,31 +82,10 @@
       </a>
     </li>
 
-    <li class="no-padding">
-      <ul class="collapsible collapsible-accordion sidenav-collapsible">
-        <li>
-          <a class="collapsible-header" id="nav-herramientas">
-            <span class="collapsible-title">
-              <i class="material-icons">build</i>Herramientas
-            </span>
-            <i class="material-icons collapsible-arrow">expand_more</i>
-          </a>
-          <div class="collapsible-body">
-            <ul>
-              <li>
-                <a href="#herramienta-presupuesto" id="nav-herramientas-presupuesto">
-                  <i class="material-icons">attach_money</i>Presupuesto diario
-                </a>
-              </li>
-              <li>
-                <a href="#herramienta-grupal" id="nav-herramientas-grupal">
-                  <i class="material-icons">group</i>Gastos grupales
-                </a>
-              </li>
-            </ul>
-          </div>
-        </li>
-      </ul>
+    <li>
+      <a href="#section-herramientas" id="nav-herramientas">
+        <i class="material-icons">build</i>Herramientas
+      </a>
     </li>
 
     <li>
@@ -1096,6 +1075,23 @@
             <option value="anio">Anual</option>
           </select>
           <label for="config-calendario-vista">Vista de calendario</label>
+        </div>
+      </div>
+
+      <!-- Tasas de cambio (para Conversor de divisas) -->
+      <div class="row">
+        <div class="col s12">
+          <p class="grey-text text-darken-1" style="margin-bottom: 0.5rem;">
+            Tasas de cambio (base ARS): definí cuántos ARS equivalen a 1 USD/EUR.
+          </p>
+        </div>
+        <div class="input-field col s12 m4">
+          <input id="config-tasa-usd" type="number" step="0.0001" />
+          <label for="config-tasa-usd">1 USD = (en ARS)</label>
+        </div>
+        <div class="input-field col s12 m4">
+          <input id="config-tasa-eur" type="number" step="0.0001" />
+          <label for="config-tasa-eur">1 EUR = (en ARS)</label>
         </div>
       </div>
 

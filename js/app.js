@@ -1253,23 +1253,16 @@ function configurarEventos() {
 
   if (navHerramientas) {
     navHerramientas.addEventListener('click', function (e) {
-      const isCollapsibleHeader = navHerramientas.classList.contains('collapsible-header');
+      e.preventDefault();
       setHerramientasVisible(true);
+      // Asegurar que haya una herramienta visible al abrir desde la barra lateral
+      const preferidaClick = (config && config.herramientaPreferida) ? config.herramientaPreferida : 'presupuesto';
+      seleccionarHerramienta(preferidaClick);
       const section = sectionHerramientas || document.getElementById('section-herramientas');
-      if (isCollapsibleHeader) {
-        // Dejar que el collapsible maneje la apertura; sólo hacemos scroll a la sección
-        setTimeout(function () {
-          if (section && section.scrollIntoView) {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 0);
-      } else {
-        e.preventDefault();
-        if (section && section.scrollIntoView) {
-          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        cerrarSidenav();
+      if (section && section.scrollIntoView) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+      cerrarSidenav();
     });
   }
 

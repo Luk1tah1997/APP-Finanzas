@@ -285,6 +285,9 @@ function guardarConfigDesdeUI() {
   renderizarOpcionesFiltroCategoria();
   renderizarMovimientos();
   actualizarResumen();
+  if (typeof renderizarDashboard === 'function') {
+    renderizarDashboard();
+  }
   renderizarCalendario();
 
   // Actualizar selects de vista calendario

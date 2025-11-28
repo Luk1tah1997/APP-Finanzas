@@ -120,9 +120,35 @@
 
   <main class="container">
 
-    <!-- Resumen -->
-    <section id="section-resumen" class="section">
-      <h5 class="section-title">Resumen del período</h5>
+    <!-- Panel de análisis (período + resumen + dashboard) -->
+    <section id="section-dashboard" class="section">
+      <h5 class="section-title">Panel de análisis del período</h5>
+
+      <!-- Controles de período -->
+      <div class="row">
+        <div class="input-field col s12 m4">
+          <select id="filtro-periodo">
+            <option value="hoy">Hoy</option>
+            <option value="ultimos-7">Una semana (últimos 7 días)</option>
+            <option value="mes-actual" selected>Mes actual</option>
+            <option value="ultimos-30">Últimos 30 días</option>
+            <option value="ultimos-6-meses">Últimos 6 meses</option>
+            <option value="anio-actual">Año vigente</option>
+            <option value="todo">Todo el histórico</option>
+          </select>
+          <label for="filtro-periodo">Período rápido</label>
+        </div>
+        <div class="input-field col s6 m4">
+          <input id="filtro-fecha-desde" type="date">
+          <label for="filtro-fecha-desde" class="active">Desde</label>
+        </div>
+        <div class="input-field col s6 m4">
+          <input id="filtro-fecha-hasta" type="date">
+          <label for="filtro-fecha-hasta" class="active">Hasta</label>
+        </div>
+      </div>
+
+      <!-- Resumen del período -->
       <div class="row">
         <div class="col s12 m4">
           <div class="card resumen-card card-ingresos">
@@ -158,11 +184,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- Dashboard -->
-    <section id="section-dashboard" class="section">
-      <h5 class="section-title">Dashboard</h5>
 
       <!-- Métricas rápidas -->
       <div class="row">
@@ -750,26 +771,7 @@
         <div class="card-content">
           <div class="row">
 
-            <div class="input-field col s12 m4">
-              <select id="filtro-periodo">
-                <option value="mes-actual" selected>Mes actual</option>
-                <option value="semana-actual">Semana actual</option>
-                <option value="anio-actual">Año actual</option>
-                <option value="ultimos-30">Últimos 30 días</option>
-                <option value="todo">Todo</option>
-              </select>
-              <label for="filtro-periodo">Período rápido</label>
-            </div>
-
-            <div class="input-field col s6 m4">
-              <input id="filtro-fecha-desde" type="date">
-              <label for="filtro-fecha-desde" class="active">Desde</label>
-            </div>
-
-            <div class="input-field col s6 m4">
-              <input id="filtro-fecha-hasta" type="date">
-              <label for="filtro-fecha-hasta" class="active">Hasta</label>
-            </div>
+            <!-- Controles de período se movieron al Panel de análisis -->
           </div>
 
           <div class="row">

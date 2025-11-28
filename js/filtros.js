@@ -108,6 +108,9 @@ function aplicarFiltros() {
   filtros = obtenerFiltrosDesdeUI();
   renderizarMovimientos();
   actualizarResumen();
+  if (typeof renderizarDashboard === 'function') {
+    renderizarDashboard();
+  }
 }
 
 function limpiarFiltros() {

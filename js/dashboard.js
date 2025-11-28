@@ -48,6 +48,105 @@ function renderizarDashboard() {
 //  Gráficos Chart.js
 // ====================
 
+// Helpers de fecha locales (evitan duplicar dependencias si no existen en core)
+function parseFechaYYYYMMDD(fechaStr) {
+  if (!fechaStr || typeof fechaStr !== 'string') return null;
+  const parts = fechaStr.split('-');
+  if (parts.length !== 3) return null;
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  const dt = new Date(y, m, d);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function formatearEtiquetaFecha(dateObj) {
+  if (!(dateObj instanceof Date)) return '';
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  return d + '/' + m;
+}
+
+function diasEntreIncluyendo(desdeStr, hastaStr) {
+  const d = parseFechaYYYYMMDD(desdeStr);
+  const h = parseFechaYYYYMMDD(hastaStr);
+  if (!d || !h) return 0;
+  const ms = h.getTime() - d.getTime();
+  const dias = Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
+  return dias > 0 ? dias : 0;
+}
+
+function calcularEstadisticasDashboard() {
+  const lista = obtenerMovimientosFiltrados ? obtenerMovimientosFiltrados() : [];
+
+  let totalIngresos = 0;
+  let totalGastos = 0;
+  let cantMovIngresos = 0;
+  let cantMovGastos = 0;
+  const diasConGastoSet = new Set();
+
+  (lista || []).forEach(function (mov) {
+    if (mov.tipo === 'INGRESO') {
+      totalIngresos += mov.monto;
+      cantMovIngresos += 1;
+    } else if (mov.tipo === 'GASTO') {
+      totalGastos += mov.monto;
+      cantMovGastos += 1;
+      if (mov.fecha) diasConGastoSet.add(mov.fecha);
+    }
+  });
+
+  // Días en período para promedio: si hay fechaDesde/hasta usar el rango, sino días distintos presentes
+  let diasPeriodo = 0;
+  if (typeof filtros === 'object' && filtros && filtros.fechaDesde && filtros.fechaHasta) {
+    diasPeriodo = diasEntreIncluyendo(filtros.fechaDesde, filtros.fechaHasta);
+  }
+  if (!diasPeriodo) {
+    const diasPresentes = new Set((lista || []).map(function (m) { return m.fecha; }).filter(Boolean));
+    diasPeriodo = diasPresentes.size || 1;
+  }
+
+  const gastoPromedioDiario = diasPeriodo > 0 ? totalGastos / diasPeriodo : 0;
+
+  return {
+    totalIngresos: totalIngresos,
+    totalGastos: totalGastos,
+    cantMovIngresos: cantMovIngresos,
+    cantMovGastos: cantMovGastos,
+    cantMovTotal: cantMovIngresos + cantMovGastos,
+    diasConGasto: diasConGastoSet.size,
+    gastoPromedioDiario: gastoPromedioDiario
+  };
+}
+
+function construirSerieBalancePorFecha(listaMovimientos) {
+  const mapaPorFecha = {};
+  (listaMovimientos || []).forEach(function (mov) {
+    if (!mov || !mov.fecha) return;
+    if (!mapaPorFecha[mov.fecha]) {
+      mapaPorFecha[mov.fecha] = { ingresos: 0, gastos: 0 };
+    }
+    if (mov.tipo === 'INGRESO') mapaPorFecha[mov.fecha].ingresos += mov.monto;
+    else if (mov.tipo === 'GASTO') mapaPorFecha[mov.fecha].gastos += mov.monto;
+  });
+
+  const fechasOrdenadas = Object.keys(mapaPorFecha).sort();
+  let acumulado = 0;
+  const labels = [];
+  const valores = [];
+
+  fechasOrdenadas.forEach(function (fStr) {
+    const f = parseFechaYYYYMMDD(fStr);
+    const neto = (mapaPorFecha[fStr].ingresos || 0) - (mapaPorFecha[fStr].gastos || 0);
+    acumulado += neto;
+    labels.push(f ? formatearEtiquetaFecha(f) : fStr);
+    valores.push(acumulado);
+  });
+
+  return { labels: labels, valores: valores };
+}
+
 function actualizarChartIngresosGastos(totalIngresos, totalGastos, simbolo) {
   const canvas = document.getElementById('chart-bar-ingresos-gastos');
   if (!canvas || typeof Chart === 'undefined') return;

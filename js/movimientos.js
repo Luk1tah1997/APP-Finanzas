@@ -6,6 +6,80 @@
 // MÓDULO: Movimientos, CRUD
 //////////////////////////////////////////////////////////////////////
 
+function renderizarMovimientos() {
+  if (!tablaBody) return;
+  const lista = obtenerMovimientosFiltrados ? obtenerMovimientosFiltrados() : [];
+
+  // Limpiar
+  while (tablaBody.firstChild) tablaBody.removeChild(tablaBody.firstChild);
+
+  (lista || []).forEach(function (mov) {
+    const tr = document.createElement('tr');
+
+    const tdFecha = document.createElement('td');
+    tdFecha.textContent = mov.fecha || '';
+    tr.appendChild(tdFecha);
+
+    const tdTipo = document.createElement('td');
+    tdTipo.textContent = mov.tipo || '';
+    tr.appendChild(tdTipo);
+
+    const tdCategoria = document.createElement('td');
+    tdCategoria.textContent = mov.categoria || '';
+    tr.appendChild(tdCategoria);
+
+    const tdForma = document.createElement('td');
+    tdForma.textContent = mov.formaPago || '';
+    tr.appendChild(tdForma);
+
+    const tdMonto = document.createElement('td');
+    tdMonto.className = 'left-align';
+    tdMonto.textContent = (typeof mov.monto === 'number' ? mov.monto : 0).toFixed(2);
+    tr.appendChild(tdMonto);
+
+    const tdNota = document.createElement('td');
+    tdNota.textContent = mov.nota || '';
+    tr.appendChild(tdNota);
+
+    const tdAcciones = document.createElement('td');
+    tdAcciones.className = 'center-align no-print actions-cell';
+    const btnEditar = document.createElement('a');
+    btnEditar.href = '#!';
+    btnEditar.className = 'btn-small waves-effect teal btn-editar';
+    btnEditar.dataset.id = String(mov.id);
+    btnEditar.innerHTML = '<i class="material-icons">edit</i>';
+    const btnEliminar = document.createElement('a');
+    btnEliminar.href = '#!';
+    btnEliminar.className = 'btn-small waves-effect red btn-eliminar';
+    btnEliminar.dataset.id = String(mov.id);
+    btnEliminar.innerHTML = '<i class="material-icons">delete</i>';
+    tdAcciones.appendChild(btnEditar);
+    tdAcciones.appendChild(btnEliminar);
+    tr.appendChild(tdAcciones);
+
+    tablaBody.appendChild(tr);
+  });
+}
+
+function actualizarResumen() {
+  const lista = obtenerMovimientosFiltrados ? obtenerMovimientosFiltrados() : [];
+  let totalIng = 0;
+  let totalGas = 0;
+  (lista || []).forEach(function (mov) {
+    if (mov.tipo === 'INGRESO') totalIng += mov.monto || 0;
+    else if (mov.tipo === 'GASTO') totalGas += mov.monto || 0;
+  });
+  const balance = totalIng - totalGas;
+
+  if (totalIngresosEl) totalIngresosEl.textContent = totalIng.toFixed(2);
+  if (totalGastosEl) totalGastosEl.textContent = totalGas.toFixed(2);
+  if (totalBalanceEl) totalBalanceEl.textContent = balance.toFixed(2);
+
+  if (typeof renderizarDashboard === 'function') {
+    renderizarDashboard();
+  }
+}
+
 function limpiarFormularioMovimiento() {
   movimientoEnEdicion = null;
 

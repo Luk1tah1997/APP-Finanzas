@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderizarMovimientos();
   actualizarResumen();
+  if (typeof renderizarDashboard === 'function') {
+    renderizarDashboard();
+  }
   refrescarTimelineDesdeFiltros();
 
   inicializarMaterialize();
@@ -61,6 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
       ? config.abrirHerramientasAlInicio
       : false
   );
+
+  // Render inicial del calendario para asegurar contenido al abrir la vista
+  if (typeof renderizarCalendario === 'function') {
+    renderizarCalendario();
+  }
 
   // Herramienta por defecto al abrir Herramientas
   const preferida = (config && config.herramientaPreferida) ? config.herramientaPreferida : 'presupuesto';
@@ -392,6 +400,9 @@ function configurarEventos() {
     navCalendario.addEventListener('click', function (e) {
       e.preventDefault();
       setCalendarioVisible(true);
+      if (typeof renderizarCalendario === 'function') {
+        renderizarCalendario();
+      }
       const section = document.getElementById('section-calendario');
       if (section && section.scrollIntoView) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -81,6 +81,33 @@ function cargarConfigDesdeStorage() {
   }
 }
 
+// Inicializa selects de Materialize y maneja el blur del modal de configuración
+function initMaterializeSelect(selectElems) {
+  if (!window.M || !M.FormSelect) return;
+
+  var options = {
+    onOpenStart: function () {
+      var modalConfigEl = document.getElementById('modal-config');
+      if (modalConfigEl) {
+        modalConfigEl.classList.add('blur-select-open');
+      }
+    },
+    onCloseEnd: function () {
+      var modalConfigEl = document.getElementById('modal-config');
+      if (modalConfigEl) {
+        modalConfigEl.classList.remove('blur-select-open');
+      }
+    }
+  };
+
+  // Si no me pasan nada, inicializo todos los <select>
+  if (!selectElems) {
+    selectElems = document.querySelectorAll('select');
+  }
+
+  M.FormSelect.init(selectElems, options);
+}
+
 // Refresca un <select> de Materialize cuando cambiamos su valor por JS
 function refrescarSelectMaterialize(selectElem) {
   if (!window.M || !M.FormSelect || !selectElem) return;
@@ -89,7 +116,7 @@ function refrescarSelectMaterialize(selectElem) {
   if (instance) {
     instance.destroy();
   }
-  M.FormSelect.init(selectElem);
+  initMaterializeSelect(selectElem);
 }
 
 // ====================

@@ -22,7 +22,7 @@ function renderizarDashboard() {
 
   const promedio = stats.gastoPromedioDiario || 0;
   dashboardGastoPromedioDiarioEl.textContent =
-    simbolo + ' ' + promedio.toFixed(2);
+    simbolo + ' ' + Math.round(promedio).toLocaleString('es-AR');
 
   dashboardDiasConGastoEl.textContent = String(stats.diasConGasto);
   dashboardCantMovIngresosEl.textContent = String(stats.cantMovIngresos);

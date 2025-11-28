@@ -215,7 +215,7 @@ function renderizarCategoriasSelect(valorSeleccionadoExplicito) {
   });
 
   if (window.M && M.FormSelect) {
-    M.FormSelect.init(selectCategoriaMovimiento);
+    initMaterializeSelect(selectCategoriaMovimiento);
   }
 }
 
@@ -244,7 +244,7 @@ function renderizarOpcionesFiltroCategoria() {
   });
 
   if (window.M && M.FormSelect) {
-    M.FormSelect.init(selectFiltroCategoria);
+    initMaterializeSelect(selectFiltroCategoria);
   }
 }
 

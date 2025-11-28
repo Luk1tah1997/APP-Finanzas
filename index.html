@@ -125,7 +125,7 @@
       <h5 class="section-title">Panel de análisis del período</h5>
 
       <!-- Controles de período -->
-      <div class="row">
+      <div class="row period-controls">
         <div class="input-field col s12 m4">
           <select id="filtro-periodo">
             <option value="hoy">Hoy</option>
@@ -138,13 +138,13 @@
           </select>
           <label for="filtro-periodo">Período rápido</label>
         </div>
-        <div class="input-field col s6 m4">
-          <input id="filtro-fecha-desde" type="date">
-          <label for="filtro-fecha-desde" class="active">Desde</label>
+        <div class="col s6 m4">
+          <label class="date-label">Desde</label>
+          <input id="filtro-fecha-desde" type="date" class="date-input">
         </div>
-        <div class="input-field col s6 m4">
-          <input id="filtro-fecha-hasta" type="date">
-          <label for="filtro-fecha-hasta" class="active">Hasta</label>
+        <div class="col s6 m4">
+          <label class="date-label">Hasta</label>
+          <input id="filtro-fecha-hasta" type="date" class="date-input">
         </div>
       </div>
 
@@ -153,10 +153,13 @@
         <div class="col s12 m4">
           <div class="card resumen-card card-ingresos">
             <div class="card-content">
-              <span class="card-title">Ingresos</span>
+              <span class="card-title">
+                <i class="material-icons">trending_up</i>
+                Ingresos
+              </span>
               <p>
                 <span class="currency-symbol" id="resumen-simbolo-ingresos">$</span>
-                <span id="total-ingresos">0.00</span>
+                <span id="total-ingresos">0</span>
               </p>
             </div>
           </div>
@@ -164,10 +167,13 @@
         <div class="col s12 m4">
           <div class="card resumen-card card-gastos">
             <div class="card-content">
-              <span class="card-title">Gastos</span>
+              <span class="card-title">
+                <i class="material-icons">trending_down</i>
+                Gastos
+              </span>
               <p>
                 <span class="currency-symbol" id="resumen-simbolo-gastos">$</span>
-                <span id="total-gastos">0.00</span>
+                <span id="total-gastos">0</span>
               </p>
             </div>
           </div>
@@ -175,10 +181,13 @@
         <div class="col s12 m4">
           <div class="card resumen-card card-balance">
             <div class="card-content">
-              <span class="card-title">Balance</span>
+              <span class="card-title">
+                <i class="material-icons">account_balance_wallet</i>
+                Balance
+              </span>
               <p>
                 <span class="currency-symbol" id="resumen-simbolo-balance">$</span>
-                <span id="total-balance">0.00</span>
+                <span id="total-balance">0</span>
               </p>
             </div>
           </div>
@@ -188,23 +197,28 @@
       <!-- Métricas rápidas -->
       <div class="row">
         <div class="col s12">
-          <div class="card dashboard-card">
+          <div class="card dashboard-card stats-card">
             <div class="card-content">
               <div class="row dashboard-summary">
                 <div class="col s12 m4 dashboard-summary-item">
+                  <i class="material-icons stats-icon">payments</i>
                   <span class="dashboard-metric-label">Gasto promedio diario</span>
                   <div class="dashboard-metric-value" id="dashboard-gasto-promedio-diario">-</div>
                 </div>
+                <div class="stats-divider"></div>
                 <div class="col s12 m4 dashboard-summary-item">
+                  <i class="material-icons stats-icon">calendar_today</i>
                   <span class="dashboard-metric-label">Días con gasto</span>
                   <div class="dashboard-metric-value" id="dashboard-dias-con-gasto">-</div>
                 </div>
+                <div class="stats-divider"></div>
                 <div class="col s12 m4 dashboard-summary-item">
+                  <i class="material-icons stats-icon">list_alt</i>
                   <span class="dashboard-metric-label">Cantidad de movimientos</span>
                   <div class="dashboard-metric-value">
-                    <span>Ing: <span id="dashboard-cant-mov-ingresos">0</span></span>
+                    <span><i class="material-icons tiny-icon">arrow_upward</i> <span id="dashboard-cant-mov-ingresos">0</span></span>
                     &nbsp;·&nbsp;
-                    <span>Gas: <span id="dashboard-cant-mov-gastos">0</span></span>
+                    <span><i class="material-icons tiny-icon">arrow_downward</i> <span id="dashboard-cant-mov-gastos">0</span></span>
                     &nbsp;·&nbsp;
                     <span>Tot: <span id="dashboard-cant-mov-total">0</span></span>
                   </div>
@@ -867,7 +881,7 @@
       <span class="footer-app-name">Mis Finanzas</span>
       <span class="footer-divider">·</span>
       <span class="footer-copy">© 2025</span>
-      <span class="footer-version">v2.9.1</span>
+      <span class="footer-version">v2.11</span>
     </div>
   </footer>
 
@@ -1045,14 +1059,16 @@
 
       <div class="row">
         <div class="input-field col s12 m4">
+          <i class="material-icons prefix">brightness_6</i>
           <select id="config-tema">
             <option value="claro" selected>Tema claro</option>
             <option value="oscuro">Tema oscuro</option>
           </select>
-          <label for="config-tema">Tema</label>
+          <label for="config-tema" class="active">Tema</label>
         </div>
 
         <div class="input-field col s12 m6">
+          <i class="material-icons prefix">attach_money</i>
           <select id="config-moneda">
             <option value="$">$ - Pesos</option>
             <option value="US$">US$ - Dólares</option>
@@ -1060,19 +1076,20 @@
             <option value="£">£ - Libras</option>
             <option value="¥">¥ - Yuanes</option>
           </select>
-          <label for="config-moneda">Moneda</label>
+          <label for="config-moneda" class="active">Moneda</label>
         </div>
       </div>
 
       <!-- Vista de calendario preferida -->
       <div class="row">
         <div class="input-field col s12 m4">
+          <i class="material-icons prefix">event</i>
           <select id="config-calendario-vista">
             <option value="mes" selected>Mensual</option>
             <option value="semana">Semanal</option>
             <option value="anio">Anual</option>
           </select>
-          <label for="config-calendario-vista">Vista de calendario</label>
+          <label for="config-calendario-vista" class="active">Vista de calendario</label>
         </div>
       </div>
 
@@ -1084,10 +1101,12 @@
           </p>
         </div>
         <div class="input-field col s12 m4">
+          <i class="material-icons prefix">currency_exchange</i>
           <input id="config-tasa-usd" type="number" step="0.0001" />
           <label for="config-tasa-usd">1 USD = (en ARS)</label>
         </div>
         <div class="input-field col s12 m4">
+          <i class="material-icons prefix">currency_exchange</i>
           <input id="config-tasa-eur" type="number" step="0.0001" />
           <label for="config-tasa-eur">1 EUR = (en ARS)</label>
         </div>
@@ -1098,25 +1117,25 @@
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-tabla" type="checkbox" class="filled-in">
-            <span>Mostrar movimientos al iniciar</span>
+            <span><i class="material-icons tiny">table_view</i> Mostrar movimientos al iniciar</span>
           </label>
         </div>
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-filtros" type="checkbox" class="filled-in">
-            <span>Mostrar filtros al iniciar</span>
+            <span><i class="material-icons tiny">filter_list</i> Mostrar filtros al iniciar</span>
           </label>
         </div>
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-dashboard" type="checkbox" class="filled-in">
-            <span>Mostrar dashboard al iniciar</span>
+            <span><i class="material-icons tiny">insert_chart</i> Mostrar dashboard al iniciar</span>
           </label>
         </div>
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-modal" type="checkbox" class="filled-in">
-            <span>Abrir "Nuevo movimiento" al iniciar</span>
+            <span><i class="material-icons tiny">add_circle</i> Abrir "Nuevo movimiento" al iniciar</span>
           </label>
         </div>
       </div>
@@ -1126,19 +1145,19 @@
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-calendario" type="checkbox" class="filled-in">
-            <span>Mostrar calendario al iniciar</span>
+            <span><i class="material-icons tiny">event</i> Mostrar calendario al iniciar</span>
           </label>
         </div>
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-timeline" type="checkbox" class="filled-in">
-            <span>Mostrar timeline al iniciar</span>
+            <span><i class="material-icons tiny">timeline</i> Mostrar timeline al iniciar</span>
           </label>
         </div>
         <div class="col s12 m3">
           <label>
             <input id="config-abrir-herramientas" type="checkbox" class="filled-in">
-            <span>Mostrar herramientas al iniciar</span>
+            <span><i class="material-icons tiny">build</i> Mostrar herramientas al iniciar</span>
           </label>
         </div>
       </div>
@@ -1147,13 +1166,13 @@
         <div class="col s12 m4">
           <label>
             <input id="config-mostrar-iconos" type="checkbox" class="filled-in">
-            <span>Mostrar iconos en categorías</span>
+            <span><i class="material-icons tiny">category</i> Mostrar iconos en categorías</span>
           </label>
         </div>
         <div class="col s12 m4">
           <label>
             <input id="config-mostrar-grafico-forma" type="checkbox" class="filled-in">
-            <span>Mostrar gráfico "Formas de pago"</span>
+            <span><i class="material-icons tiny">pie_chart</i> Mostrar gráfico "Formas de pago"</span>
           </label>
         </div>
       </div>

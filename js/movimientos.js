@@ -71,9 +71,10 @@ function actualizarResumen() {
   });
   const balance = totalIng - totalGas;
 
-  if (totalIngresosEl) totalIngresosEl.textContent = totalIng.toFixed(2);
-  if (totalGastosEl) totalGastosEl.textContent = totalGas.toFixed(2);
-  if (totalBalanceEl) totalBalanceEl.textContent = balance.toFixed(2);
+  // Formato sin decimales y con separadores de miles
+  if (totalIngresosEl) totalIngresosEl.textContent = Math.round(totalIng).toLocaleString('es-AR');
+  if (totalGastosEl) totalGastosEl.textContent = Math.round(totalGas).toLocaleString('es-AR');
+  if (totalBalanceEl) totalBalanceEl.textContent = Math.round(balance).toLocaleString('es-AR');
 
   if (typeof renderizarDashboard === 'function') {
     renderizarDashboard();

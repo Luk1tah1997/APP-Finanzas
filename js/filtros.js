@@ -118,10 +118,15 @@ function limpiarFiltros() {
   renderizarOpcionesFiltroCategoria();
 
   if (window.M && M.FormSelect) {
-    if (selectFiltroPeriodo) M.FormSelect.init(selectFiltroPeriodo);
-    if (selectFiltroTipo) M.FormSelect.init(selectFiltroTipo);
-    if (selectFiltroCategoria) M.FormSelect.init(selectFiltroCategoria);
-    if (selectFiltroFormaPago) M.FormSelect.init(selectFiltroFormaPago);
+    var selects = [
+      selectFiltroPeriodo,
+      selectFiltroTipo,
+      selectFiltroCategoria,
+      selectFiltroFormaPago
+    ].filter(Boolean);
+    if (selects.length) {
+      initMaterializeSelect(selects);
+    }
   }
 
   renderizarMovimientos();

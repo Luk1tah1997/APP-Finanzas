@@ -25,44 +25,79 @@ body.dark-mode .herramientas-menu-item.activa {
    ========================================================= */
 
 :root {
-  --color-bg: #f4f5fb;
+  /* Tema Claro */
+  --color-bg: #f5f7fa;
   --color-surface: #ffffff;
   --color-surface-subtle: #f9fafb;
   --color-primary: #26a69a;
   --color-primary-soft: #d9f3ee;
-  --color-income: #16a34a;
-  --color-expense: #ef4444;
-  --color-balance: #2563eb;
+  
+  /* Colores financieros - Claro */
+  --color-income: #0d7d2d;
+  --color-income-light: #4ade80;
+  --color-income-bg: #d1fae5;
+  --color-income-border: rgba(13, 125, 45, 0.3);
+  
+  --color-expense: #c41e3a;
+  --color-expense-light: #fb7185;
+  --color-expense-bg: #fee2e2;
+  --color-expense-border: rgba(196, 30, 58, 0.3);
+  
+  --color-balance: #0d47a1;
+  --color-balance-light: #60a5fa;
+  --color-balance-bg: #dbeafe;
+  --color-balance-border: rgba(13, 71, 161, 0.3);
+  
   --color-text: #1f2933;
   --color-text-muted: #6b7280;
-  --color-border-subtle: rgba(15, 23, 42, 0.06);
+  --color-border-subtle: rgba(15, 23, 42, 0.08);
 
-  --radius-lg: 18px;
+  --radius-lg: 16px;
   --radius-md: 12px;
   --radius-pill: 999px;
 
   --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
-  --shadow-subtle: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-subtle: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 16px 40px rgba(15, 23, 42, 0.12);
 
   --transition-fast: 150ms ease-out;
   --transition-med: 220ms ease-out;
+  
+  /* Fuente */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
 body.dark-mode {
-  --color-bg: #020617;
-  --color-surface: #020617;
-  --color-surface-subtle: #020617;
+  /* Tema Oscuro */
+  --color-bg: #0f1419;
+  --color-surface: #1a1f2e;
+  --color-surface-subtle: #1a1f2e;
   --color-primary: #26a69a;
   --color-primary-soft: rgba(38, 166, 154, 0.12);
+  
+  /* Colores financieros - Oscuro */
   --color-income: #4ade80;
-  --color-expense: #f87171;
+  --color-income-light: #86efac;
+  --color-income-bg: rgba(13, 125, 45, 0.15);
+  --color-income-border: rgba(74, 222, 128, 0.3);
+  
+  --color-expense: #fb7185;
+  --color-expense-light: #fda4af;
+  --color-expense-bg: rgba(196, 30, 58, 0.15);
+  --color-expense-border: rgba(251, 113, 133, 0.3);
+  
   --color-balance: #60a5fa;
+  --color-balance-light: #93c5fd;
+  --color-balance-bg: rgba(13, 71, 161, 0.15);
+  --color-balance-border: rgba(96, 165, 250, 0.3);
+  
   --color-text: #e5e7eb;
   --color-text-muted: #9ca3af;
-  --color-border-subtle: rgba(148, 163, 184, 0.3);
+  --color-border-subtle: rgba(148, 163, 184, 0.2);
 
-  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.85);
-  --shadow-subtle: 0 2px 10px rgba(15, 23, 42, 0.7);
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.5);
+  --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 /* =========================================================
@@ -79,6 +114,8 @@ body {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-primary);
+  transition: background-color var(--transition-med), color var(--transition-med);
 }
 
 main {
@@ -351,40 +388,210 @@ nav .sidenav-trigger {
   min-height: 150px;
 }
 
-/* Resumen: números más grandes */
-#section-resumen .card-content p {
-  font-size: 1.4rem;
-  font-weight: 600;
-}
+/* =========================================================
+   TARJETAS FINANCIERAS - Diseño mejorado
+   ========================================================= */
 
-/* Pills del resumen más marcadas */
 .resumen-card {
-  border-radius: 24px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(15, 23, 42, 0.04);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--transition-med);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Colores de resumen en modo claro (más contraste) */
-.resumen-card.card-ingresos {
-  background: linear-gradient(135deg, #d1fae5, #ecfdf3);
-  border-color: rgba(22, 163, 74, 0.35);
+.resumen-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 
-.resumen-card.card-gastos {
-  background: linear-gradient(135deg, #fee2e2, #fef2f2);
-  border-color: rgba(239, 68, 68, 0.35);
+.resumen-card .card-content {
+  padding: 24px;
+  position: relative;
 }
 
-.resumen-card.card-balance {
-  background: linear-gradient(135deg, #dbeafe, #eff6ff);
-  border-color: rgba(37, 99, 235, 0.35);
+.resumen-card .card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Símbolo de moneda un poco más suave */
+.resumen-card .card-title i.material-icons {
+  font-size: 1.25rem;
+}
+
+.resumen-card .card-content p {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
 .currency-symbol {
   font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-right: 4px;
+}
+
+/* Tarjeta INGRESOS */
+.resumen-card.card-ingresos {
+  background: var(--color-income-bg);
+  border: 2px solid var(--color-income-border);
+}
+
+.resumen-card.card-ingresos .card-title {
+  color: var(--color-income);
+}
+
+.resumen-card.card-ingresos .card-content p {
+  color: var(--color-income);
+}
+
+/* Tarjeta GASTOS */
+.resumen-card.card-gastos {
+  background: var(--color-expense-bg);
+  border: 2px solid var(--color-expense-border);
+}
+
+.resumen-card.card-gastos .card-title {
+  color: var(--color-expense);
+}
+
+.resumen-card.card-gastos .card-content p {
+  color: var(--color-expense);
+}
+
+/* Tarjeta BALANCE */
+.resumen-card.card-balance {
+  background: var(--color-balance-bg);
+  border: 2px solid var(--color-balance-border);
+}
+
+.resumen-card.card-balance .card-title {
+  color: var(--color-balance);
+}
+
+.resumen-card.card-balance .card-content p {
+  color: var(--color-balance);
+}
+
+/* =========================================================
+   Sección de fechas moderna
+   ========================================================= */
+
+.period-controls {
+  margin-bottom: 2rem;
+}
+
+.date-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  margin-right: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-family: var(--font-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  height: auto;
+  margin: 0;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.12);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  filter: opacity(0.5);
+  cursor: pointer;
+}
+
+body.dark-mode .date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.5);
+}
+
+/* =========================================================
+   Tarjeta de estadísticas con iconos
+   ========================================================= */
+
+.stats-card .card-content {
+  padding: 24px;
+  background-color: var(--color-surface-subtle);
+}
+
+.dashboard-summary {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  margin: 0;
+  position: relative;
+}
+
+.dashboard-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px;
+}
+
+.stats-icon {
+  color: var(--color-primary);
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.tiny-icon {
+  font-size: 1rem !important;
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+.stats-divider {
+  width: 1px;
+  background-color: var(--color-border-subtle);
+  margin: 12px 0;
+  display: none;
+}
+
+@media only screen and (min-width: 601px) {
+  .stats-divider {
+    display: block;
+  }
 }
 
 /* =========================================================
@@ -526,6 +733,18 @@ table.highlight tbody tr:hover {
 .sidenav {
   background-color: var(--color-surface);
   box-shadow: var(--shadow-soft);
+  border-radius: 0 16px 16px 0;
+  border-right: 3px solid var(--color-primary);
+  animation: sidenav-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sidenav-pulse {
+  0%, 100% {
+    box-shadow: 4px 0 12px rgba(38, 166, 154, 0.3), var(--shadow-soft);
+  }
+  50% {
+    box-shadow: 4px 0 20px rgba(38, 166, 154, 0.5), var(--shadow-soft);
+  }
 }
 
 .sidenav li {
@@ -778,6 +997,270 @@ body.dark-mode .dashboard-metric-label {
 
 body.dark-mode .app-footer {
   background-color: var(--color-surface);
+}
+
+/* =========================================================
+   Redondeo global y mejoras visuales
+   ========================================================= */
+
+/* Inputs, textareas y selects redondeados */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+textarea,
+select,
+.select-wrapper input.select-dropdown {
+  border-radius: 12px !important;
+  border: 1px solid var(--color-border-subtle);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+.select-wrapper input.select-dropdown:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.12) !important;
+}
+
+/* Botones redondeados */
+.btn,
+.btn-small,
+.btn-large,
+.btn-flat,
+.btn-floating {
+  border-radius: 12px !important;
+}
+
+.btn-floating {
+  border-radius: 50% !important;
+}
+
+/* Modales redondeados */
+.modal {
+  border-radius: 16px !important;
+  max-height: 90%;
+}
+
+/* Modal de configuración con marco visual */
+#modal-config {
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 20px 50px rgba(38, 166, 154, 0.15), var(--shadow-soft);
+}
+
+/* Tablas redondeadas */
+table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Dropdown menu redondeado */
+.dropdown-content {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 4px 12px rgba(38, 166, 154, 0.2), var(--shadow-subtle);
+  animation: dropdown-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dropdown-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(38, 166, 154, 0.2), var(--shadow-subtle);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(38, 166, 154, 0.35), var(--shadow-subtle);
+  }
+}
+
+.dropdown-content li {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.dropdown-content li:last-child {
+  border-bottom: none;
+}
+
+.dropdown-content li:hover,
+.dropdown-content li.active {
+  background-color: rgba(38, 166, 154, 0.12);
+}
+
+body.dark-mode .dropdown-content {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3), var(--shadow-subtle);
+}
+
+body.dark-mode .dropdown-content li {
+  border-bottom-color: rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode .dropdown-content li:hover,
+body.dark-mode .dropdown-content li.active {
+  background-color: rgba(38, 166, 154, 0.2);
+}
+
+/* Collection items redondeados */
+.collection {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.collection .collection-item {
+  border-radius: 0 !important;
+}
+
+.collection .collection-item:first-child {
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.collection .collection-item:last-child {
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* Chips redondeados */
+.chip {
+  border-radius: 16px !important;
+}
+
+/* Iconos en checkboxes del modal de configuración */
+#modal-config label span i.material-icons.tiny {
+  font-size: 1.1rem;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: var(--color-text-muted);
+}
+
+/* Iconos prefix en inputs del modal config */
+#modal-config .input-field .prefix {
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+#modal-config .input-field.focus .prefix,
+#modal-config .input-field input:focus ~ .prefix,
+#modal-config .input-field select:focus ~ .prefix {
+  color: var(--color-primary);
+}
+
+/* Mejora visual de checkboxes en modal config */
+#modal-config label {
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color var(--transition-fast);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+#modal-config label:hover {
+  background-color: rgba(38, 166, 154, 0.05);
+}
+
+body.dark-mode #modal-config label:hover {
+  background-color: rgba(38, 166, 154, 0.1);
+}
+
+body.dark-mode #modal-config {
+  border-color: var(--color-primary);
+  box-shadow: 0 20px 50px rgba(38, 166, 154, 0.25), var(--shadow-soft);
+}
+
+/* Espaciado en el contenido */
+#modal-config .row {
+  margin-bottom: 20px;
+}
+
+/* Modal content con scroll y espacio para labels */
+#modal-config .modal-content {
+  padding: 32px 24px 12px;
+  max-height: 70vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Footer compacto */
+#modal-config .modal-footer {
+  margin: 0;
+  padding: 12px 24px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Blur interno del modal cuando un select está abierto */
+#modal-config.blur-select-open::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: radial-gradient(
+    circle at top,
+    rgba(0, 0, 0, 0.25),
+    rgba(0, 0, 0, 0.75)
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Asegurar que el dropdown quede arriba de todo */
+.dropdown-content.select-dropdown {
+  z-index: 3000;
+}
+
+/* Input fields con espacio para labels arriba */
+#modal-config .input-field {
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+/* Labels del modal: arriba del campo, visibles */
+#modal-config .input-field label {
+  position: absolute;
+  top: -27px;
+  left: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transform: none !important;
+  color: var(--color-text-muted);
+}
+
+/* Estado activo: solo cambia color */
+#modal-config .input-field label.active {
+  top: -27px;
+  left: 0;
+  transform: none !important;
+  color: var(--color-primary);
+}
+
+/* Ajustar posición de prefix icon */
+#modal-config .input-field .prefix {
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+#modal-config .input-field.focus .prefix {
+  color: var(--color-primary);
+}
+
+/* Inputs y selects con margen para el icono */
+#modal-config .input-field .prefix ~ input,
+#modal-config .input-field .prefix ~ .select-wrapper {
+  margin-left: 3rem;
+  width: calc(100% - 3rem);
+}
+
+#modal-config .input-field .prefix ~ .select-wrapper input.select-dropdown {
+  margin-left: 0;
+  width: 100%;
 }
 
 /* =========================================================
@@ -1127,8 +1610,8 @@ html { -webkit-text-size-adjust: 100%; }
 
 /* Global container padding to avoid edge collisions on very small screens */
 .container {
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 @media only screen and (max-width: 600px) {
@@ -1154,6 +1637,24 @@ html { -webkit-text-size-adjust: 100%; }
   .fixed-action-btn {
     right: 1rem;
     bottom: 1.2rem;
+  }
+
+  /* Tarjetas financieras más compactas en móvil */
+  .resumen-card .card-content {
+    padding: 16px;
+  }
+
+  .resumen-card .card-content p {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-summary-item {
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stats-divider {
+    display: none !important;
   }
 
   /* Slightly smaller charts on mobile */

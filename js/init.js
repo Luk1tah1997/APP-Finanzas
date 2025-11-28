@@ -790,10 +790,8 @@ function inicializarMaterialize() {
   }
 
   try {
-    if (window.M && M.FormSelect) {
-      const selects = document.querySelectorAll('select');
-      if (selects && selects.length) M.FormSelect.init(selects);
-    }
+    const selects = document.querySelectorAll('select');
+    if (selects && selects.length) initMaterializeSelect(selects);
   } catch (err) {
     console.error('Error inicializando selects Materialize:', err);
   }

@@ -3,6 +3,7 @@
 
 'use strict';
 
+//#region MÓDULO: Estado global
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Estado global
 //////////////////////////////////////////////////////////////////////
@@ -303,6 +304,8 @@ let modalResultadoGrupalInstance;
 let modalHistorialHerramientasInstance;
 let sidenavInstance;
 
+//#endregion MÓDULO: Estado global
+//#region MÓDULO: Helpers
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Helpers
 //////////////////////////////////////////////////////////////////////
@@ -442,6 +445,8 @@ function asegurarIconosParaCategoriasExistentes() {
   guardarCategoriaIconosEnStorage(categoriaIconos);
 }
 
+//#endregion MÓDULO: Helpers
+//#region MÓDULO: Config
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Config
 //////////////////////////////////////////////////////////////////////
@@ -841,6 +846,8 @@ function obtenerTipoCategoriaPorNombre(nombre) {
   return null;
 }
 
+//#endregion MÓDULO: Config
+//#region MÓDULO: Init + Eventos
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Init + Eventos
 //////////////////////////////////////////////////////////////////////
@@ -1644,6 +1651,8 @@ function inicializarMaterialize() {
   }
 }
 
+//#endregion MÓDULO: Init + Eventos
+//#region MÓDULO: Categorías
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Categorías
 //////////////////////////////////////////////////////////////////////
@@ -2153,6 +2162,8 @@ function construirSerieBalancePorFecha(listaMovimientos) {
   };
 }
 
+//#endregion MÓDULO: Categorías
+//#region MÓDULO: Dashboard + Charts
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Dashboard + Charts
 //////////////////////////////////////////////////////////////////////
@@ -2441,6 +2452,8 @@ function actualizarChartBalanceTiempo(listaMovimientos, simbolo) {
   });
 }
 
+//#endregion MÓDULO: Dashboard + Charts
+//#region MÓDULO: Timeline
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Timeline
 //////////////////////////////////////////////////////////////////////
@@ -2606,10 +2619,13 @@ function actualizarChartTimeline(listaMovimientos, simbolo) {
   });
 }
 
+//#endregion MÓDULO: Timeline
+//#region MÓDULO: Herramientas
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Herramientas
 //////////////////////////////////////////////////////////////////////
 
+//#region Herramienta: Presupuesto diario
 // ====================
 // ====================
 //  Presupuesto diario
@@ -2651,6 +2667,8 @@ function limpiarHerramientaPresupuesto() {
   }
 }
 
+//#endregion Herramienta: Presupuesto diario
+//#region Herramienta: Gastos grupales
 // ====================
 //  Gastos grupales
 // ====================
@@ -3046,6 +3064,8 @@ function limpiarHerramientaGrupal() {
   }
 }
 
+//#endregion Herramienta: Gastos grupales
+//#region Herramienta: Conversor de divisas
 // ====================
 //  Conversor de divisas
 // ====================
@@ -3102,6 +3122,8 @@ function limpiarHerramientaDivisas() {
   if (window.M && M.updateTextFields) M.updateTextFields();
 }
 
+//#endregion Herramienta: Conversor de divisas
+//#region Herramienta: Interés compuesto
 // ====================
 //  Interés compuesto
 // ====================
@@ -3144,6 +3166,8 @@ function limpiarHerramientaInteres() {
   if (window.M && M.updateTextFields) M.updateTextFields();
 }
 
+//#endregion Herramienta: Interés compuesto
+//#region Herramienta: Objetivo de ahorro
 // ====================
 //  Objetivo de ahorro
 // ====================
@@ -3221,6 +3245,9 @@ function construirIndiceMovimientosPorDia() {
   return indice;
 }
 
+//#endregion Herramienta: Objetivo de ahorro
+//#endregion MÓDULO: Herramientas
+//#region MÓDULO: Movimientos, CRUD
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Movimientos, CRUD
 //////////////////////////////////////////////////////////////////////
@@ -3486,6 +3513,8 @@ function manejarCambioCategoriaEnModal() {
   });
 }
 
+//#endregion MÓDULO: Movimientos, CRUD
+//#region MÓDULO: Filtros
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Filtros
 //////////////////////////////////////////////////////////////////////
@@ -3791,6 +3820,8 @@ function convertirFechaADateString(fecha) {
   return y + '-' + m + '-' + d;
 }
 
+//#endregion MÓDULO: Filtros
+//#region MÓDULO: Calendario
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Calendario
 //////////////////////////////////////////////////////////////////////
@@ -4127,6 +4158,8 @@ function actualizarDetalleCalendario(fechaStr, indice) {
   });
 }
 
+//#endregion MÓDULO: Calendario
+//#region MÓDULO: Backup + Export
 //////////////////////////////////////////////////////////////////////
 // MÓDULO: Backup + Export
 //////////////////////////////////////////////////////////////////////
@@ -4315,3 +4348,4 @@ function exportarCSV() {
   descargarArchivo(nombre, csv, 'text/csv;charset=utf-8;');
   mostrarMensaje('CSV exportado.');
 }
+//#endregion MÓDULO: Backup + Export

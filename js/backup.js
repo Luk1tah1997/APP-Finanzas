@@ -201,6 +201,21 @@ function exportarPlantillaExcel() {
     return;
   }
 
+  // Fecha actual en formato DD/MM/YYYY
+  const hoy = new Date();
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const yyyy = hoy.getFullYear();
+  const fechaHoy = dd + '/' + mm + '/' + yyyy;
+
+  // Fecha de ayer
+  const ayer = new Date(hoy);
+  ayer.setDate(ayer.getDate() - 1);
+  const ddAyer = String(ayer.getDate()).padStart(2, '0');
+  const mmAyer = String(ayer.getMonth() + 1).padStart(2, '0');
+  const yyyyAyer = ayer.getFullYear();
+  const fechaAyer = ddAyer + '/' + mmAyer + '/' + yyyyAyer;
+
   // Encabezados
   const headers = [
     'Fecha',
@@ -214,9 +229,9 @@ function exportarPlantillaExcel() {
   // Primera fila: headers
   const data = [headers];
 
-  // Fila de ejemplo (opcional)
+  // Fila de ejemplo con fecha actual
   data.push([
-    '2025-01-15',
+    fechaHoy,
     'INGRESO',
     'Salario',
     100000,
@@ -224,7 +239,7 @@ function exportarPlantillaExcel() {
     'Ejemplo de ingreso'
   ]);
   data.push([
-    '2025-01-16',
+    fechaAyer,
     'GASTO',
     'Comida',
     5000,
@@ -234,11 +249,28 @@ function exportarPlantillaExcel() {
 
   // Crear worksheet y workbook
   const ws = XLSX.utils.aoa_to_sheet(data);
+  
+  // Aplicar formato de texto a la columna de fecha (columna A) para todas las filas
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let R = 0; R <= range.e.r; ++R) {
+    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 });
+    if (!ws[cellAddress]) continue;
+    
+    // Forzar tipo texto (string) para que Excel no convierta las fechas
+    if (ws[cellAddress].v) {
+      ws[cellAddress].t = 's'; // tipo string
+      ws[cellAddress].z = '@'; // formato de texto
+    }
+  }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
 
+  // Nombre de archivo con fecha actual
+  const nombreArchivo = 'plantilla-mis-finanzas-' + dd + '-' + mm + '-' + yyyy + '.xlsx';
+  
   // Descargar archivo
-  XLSX.writeFile(wb, 'plantilla-mis-finanzas.xlsx');
+  XLSX.writeFile(wb, nombreArchivo);
   mostrarMensaje('Plantilla Excel descargada.');
 }
 

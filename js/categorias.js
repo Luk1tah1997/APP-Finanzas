@@ -81,21 +81,42 @@ function manejarClickListaCategorias(event) {
 }
 
 function renombrarCategoria(tipo, nombreActual) {
-  const nuevoNombre = window.prompt(
-    'Nuevo nombre para la categoría:',
-    nombreActual
-  );
-  if (!nuevoNombre) return;
-
-  const nombreTrim = nuevoNombre.trim();
-  if (!nombreTrim) return;
-
-  if ((categorias[tipo] || []).includes(nombreTrim)) {
-    if (nombreTrim !== nombreActual) {
-      mostrarMensaje('Ya existe una categoría con ese nombre.');
+  // Abrir modal y pre-cargar el nombre actual
+  const inputRenombrar = document.getElementById('input-renombrar-categoria');
+  const btnConfirmarRenombrar = document.getElementById('btn-confirmar-renombrar');
+  
+  if (!inputRenombrar || !btnConfirmarRenombrar || !modalRenombrarCategoriaInstance) return;
+  
+  inputRenombrar.value = nombreActual;
+  if (window.M && M.updateTextFields) M.updateTextFields();
+  inputRenombrar.focus();
+  
+  // Remover listeners previos
+  const nuevoBtn = btnConfirmarRenombrar.cloneNode(true);
+  btnConfirmarRenombrar.parentNode.replaceChild(nuevoBtn, btnConfirmarRenombrar);
+  
+  nuevoBtn.addEventListener('click', function() {
+    const nuevoNombre = inputRenombrar.value.trim();
+    if (!nuevoNombre) {
+      mostrarMensaje('El nombre no puede estar vacío.');
+      return;
     }
-    return;
-  }
+    
+    if ((categorias[tipo] || []).includes(nuevoNombre)) {
+      if (nuevoNombre !== nombreActual) {
+        mostrarMensaje('Ya existe una categoría con ese nombre.');
+      }
+      return;
+    }
+    
+    ejecutarRenombrarCategoria(tipo, nombreActual, nuevoNombre);
+    modalRenombrarCategoriaInstance.close();
+  });
+  
+  modalRenombrarCategoriaInstance.open();
+}
+
+function ejecutarRenombrarCategoria(tipo, nombreActual, nombreTrim) {
 
   categorias[tipo] = (categorias[tipo] || []).map(function (c) {
     return c === nombreActual ? nombreTrim : c;

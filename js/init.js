@@ -821,6 +821,8 @@ function inicializarMaterialize() {
               modalHistorialHerramientasInstance = instance;
             } else if (elem && elem.id === 'modal-imprimir') {
               modalImprimirInstance = instance;
+            } else if (elem && elem.id === 'modal-renombrar-categoria') {
+              modalRenombrarCategoriaInstance = instance;
             }
           });
         }

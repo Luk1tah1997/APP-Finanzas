@@ -339,6 +339,7 @@ let modalResultadoPresupuestoInstance;
 let modalResultadoGrupalInstance;
 let modalHistorialHerramientasInstance;
 let modalImprimirInstance;
+let modalRenombrarCategoriaInstance;
 let sidenavInstance;
 
 // Modal de impresión

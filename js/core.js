@@ -195,7 +195,6 @@ let inputConfigTasaUSD;
 let inputConfigTasaEUR;
 
 // Sidenav DOM
-let navToggleFiltros;
 let navToggleTabla;
 let navDashboard;
 let navExportarBackup;

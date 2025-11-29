@@ -169,7 +169,6 @@ function cacheDomElements() {
   btnOpenConfigModal = document.getElementById('btn-open-config-modal');
 
   // Menú lateral
-  navToggleFiltros = document.getElementById('nav-toggle-filtros');
   navToggleTabla = document.getElementById('nav-toggle-tabla');
   navDashboard = document.getElementById('nav-dashboard');
   navExportarBackup = document.getElementById('nav-exportar-backup');
@@ -561,22 +560,11 @@ function configurarEventos() {
   }
 
   // Navegación sidenav
-  if (navToggleFiltros) {
-    navToggleFiltros.addEventListener('click', function (e) {
-      e.preventDefault();
-      setFiltrosVisible(true);
-      const section = document.getElementById('section-filtros');
-      if (section && section.scrollIntoView) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      cerrarSidenav();
-    });
-  }
-
   if (navToggleTabla) {
     navToggleTabla.addEventListener('click', function (e) {
       e.preventDefault();
       setTablaVisible(true);
+      setFiltrosVisible(true);
       const section = document.getElementById('section-tabla');
       if (section && section.scrollIntoView) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });

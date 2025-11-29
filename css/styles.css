@@ -202,8 +202,7 @@ body {
 }
 
 main {
-  padding-top: 4.5rem;   /* deja espacio para la navbar fija */
-  padding-bottom: 2.5rem;
+  padding-top: 4.5rem;
   padding-left: 12px;
   padding-right: 12px;
 }
@@ -657,7 +656,7 @@ body.dark-mode .date-input::-webkit-calendar-picker-indicator {
 
 .stats-card .card-content {
   padding: 24px;
-  background-color: var(--color-surface-subtle);
+  background-color: transparent;
 }
 
 .dashboard-summary {
@@ -715,6 +714,65 @@ body.dark-mode .date-input::-webkit-calendar-picker-indicator {
   .stats-divider {
     display: block;
   }
+}
+
+/* Cantidad de movimientos mejorada */
+.dashboard-movimientos-count {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.mov-count-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  padding: 3px 10px;
+  border-radius: 8px;
+  transition: all var(--transition-fast);
+  min-width: 80px;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.mov-count-ingresos {
+  background-color: transparent;
+  color: var(--color-income);
+  border: 1.5px solid var(--color-income-border);
+}
+
+.mov-count-ingresos .tiny-icon {
+  color: var(--color-income);
+}
+
+.mov-count-gastos {
+  background-color: transparent;
+  color: var(--color-expense);
+  border: 1.5px solid var(--color-expense-border);
+}
+
+.mov-count-gastos .tiny-icon {
+  color: var(--color-expense);
+}
+
+.mov-count-total {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border-subtle);
+  font-weight: 600;
+}
+
+.mov-count-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+body.dark-mode .mov-count-item {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* =========================================================
@@ -1735,6 +1793,7 @@ html { -webkit-text-size-adjust: 100%; }
 .container {
   padding-left: 4px;
   padding-right: 4px;
+  width: 97%;
 }
 
 /* Columnas sin márgenes laterales para simetría perfecta */

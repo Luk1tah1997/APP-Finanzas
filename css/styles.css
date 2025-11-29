@@ -250,15 +250,31 @@ nav .nav-wrapper.nav-layout {
 }
 
 .nav-logo-circle {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background-color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(38, 166, 154, 0.4);
-  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(38, 166, 154, 0.5);
+  margin-top: -7px;
+  animation: logo-spin 1s ease-out;
+}
+
+@keyframes logo-spin {
+  0% {
+    transform: rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
 }
 
 /* título a la derecha */
@@ -274,13 +290,13 @@ nav .nav-wrapper.nav-layout {
 
 @media only screen and (max-width: 600px) {
   .nav-layout__title {
-    font-size: 1rem;
+    font-size: 0.95rem;
     right: 12px;
   }
   .nav-logo-circle {
-    width: 46px;
-    height: 46px;
-    margin-top: 4px;
+    width: 50px;
+    height: 50px;
+    margin-top: -5px;
   }
 }
 
@@ -354,9 +370,9 @@ nav {
 }
 
 .nav-logo-img {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
   object-fit: cover;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -1849,14 +1865,7 @@ html { -webkit-text-size-adjust: 100%; }
     padding-right: 8px;
   }
 
-  .nav-layout__title {
-    font-size: 1rem;
-  }
-
-  .nav-logo-img { 
-    width: 34px; 
-    height: 34px; 
-  }
+  .nav-logo-img { width: 38px; height: 38px; }
 
   /* Prevent iOS/Android auto-zoom when focusing inputs */
   input, select, textarea, .categoria-search-wrapper input {
@@ -1904,14 +1913,14 @@ html { -webkit-text-size-adjust: 100%; }
 }
 
 @media only screen and (max-width: 360px) {
-  .nav-layout__title { font-size: 0.9rem; }
+  .nav-layout__title { font-size: 0.85rem; }
   .nav-logo-circle { 
-    width: 42px; 
-    height: 42px; 
+    width: 46px; 
+    height: 46px; 
   }
   .nav-logo-img { 
-    width: 30px; 
-    height: 30px; 
+    width: 36px; 
+    height: 36px; 
   }
   .fixed-action-btn .btn-floating { transform: scale(0.95); }
 }

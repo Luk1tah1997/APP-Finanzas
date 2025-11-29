@@ -879,6 +879,106 @@ function inicializarMaterialize() {
     console.error('Error llamando M.updateTextFields():', err);
   }
 }
+//////////////////////////////////////////////////////////////////////
+// MÓDULO: PWA (Service Worker + instalación)
+//////////////////////////////////////////////////////////////////////
+
+// Variables para manejar el prompt de instalación de la PWA
+var pwaInstallButtonEl = null;
+var deferredPwaPromptEvent = null;
+
+function inicializarPwa() {
+  try {
+    // Registrar Service Worker si el navegador lo soporta
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('sw.js')
+        .catch(function (err) {
+          console.error('Error registrando Service Worker:', err);
+        });
+    }
+  } catch (err) {
+    console.error('Error general al registrar Service Worker:', err);
+  }
+
+  try {
+    pwaInstallButtonEl = document.getElementById('btn-instalar-pwa');
+    if (pwaInstallButtonEl) {
+      // Ocultamos el botón por defecto y solo lo mostramos cuando el navegador dispare el evento
+      pwaInstallButtonEl.style.display = 'none';
+
+      pwaInstallButtonEl.addEventListener('click', manejarClickInstalarPwa);
+    }
+
+    // Guardamos el evento beforeinstallprompt para poder dispararlo manualmente
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPwaPromptEvent = e;
+
+      if (pwaInstallButtonEl) {
+        pwaInstallButtonEl.style.display = 'inline-flex';
+      }
+    });
+
+    // Si la app se instala, limpiamos el estado y ocultamos el botón
+    window.addEventListener('appinstalled', function () {
+      deferredPwaPromptEvent = null;
+      if (pwaInstallButtonEl) {
+        pwaInstallButtonEl.style.display = 'none';
+      }
+    });
+  } catch (err) {
+    console.error('Error inicializando flujo de instalación PWA:', err);
+  }
+}
+
+function manejarClickInstalarPwa() {
+  try {
+    if (!deferredPwaPromptEvent) {
+      if (window.M && M.toast) {
+        M.toast({ html: 'La instalación no está disponible en este momento.' });
+      } else {
+        alert('La instalación no está disponible en este momento.');
+      }
+      return;
+    }
+
+    deferredPwaPromptEvent.prompt();
+
+    deferredPwaPromptEvent.userChoice
+      .then(function (choiceResult) {
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          if (window.M && M.toast) {
+            M.toast({ html: 'Instalando Mis Finanzas...' });
+          }
+        } else {
+          if (window.M && M.toast) {
+            M.toast({ html: 'Instalación cancelada.' });
+          }
+        }
+      })
+      .catch(function (err) {
+        console.error('Error manejando userChoice de instalación PWA:', err);
+      })
+      .finally(function () {
+        deferredPwaPromptEvent = null;
+        if (pwaInstallButtonEl) {
+          pwaInstallButtonEl.style.display = 'none';
+        }
+      });
+  } catch (err) {
+    console.error('Error al intentar instalar la PWA:', err);
+  }
+}
+
+// Escuchamos DOMContentLoaded para inicializar la PWA sin tocar el flujo actual
+try {
+  document.addEventListener('DOMContentLoaded', function () {
+    inicializarPwa();
+  });
+} catch (err) {
+  console.error('Error agregando listener DOMContentLoaded para PWA:', err);
+}
 
 //#endregion MÓDULO: Init + Eventos
 

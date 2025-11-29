@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/jpeg" href="img/logo.jpg">
+  <link rel="icon" type="image/jpeg" href="img/logo.png">
 
   <!-- Materialize CSS -->
   <link rel="stylesheet"
@@ -38,7 +38,7 @@
 
       <!-- Derecha: logo -->
       <div class="nav-layout__right">
-        <img src="img/logo.jpg"
+        <img src="img/logo.png"
              alt="Mis Finanzas"
              class="nav-logo-img">
       </div>
@@ -103,6 +103,16 @@
     <li>
       <a href="#!" id="nav-exportar-csv">
         <i class="material-icons">table_chart</i>Exportar CSV
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-exportar-plantilla-excel">
+        <i class="material-icons">description</i>Descargar plantilla Excel
+      </a>
+    </li>
+    <li>
+      <a href="#!" id="nav-importar-excel">
+        <i class="material-icons">upload_file</i>Importar desde Excel
       </a>
     </li>
     <li>
@@ -189,6 +199,40 @@
                 <span class="currency-symbol" id="resumen-simbolo-balance">$</span>
                 <span id="total-balance">0</span>
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights comparativos (mes actual vs anterior) -->
+      <div class="row dashboard-insights-row">
+        <div class="col s12 m6">
+          <div class="card insight-card">
+            <div class="card-content">
+              <p class="dashboard-insight-line" id="dashboard-insight-ingresos">Cargando datos...</p>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m6">
+          <div class="card insight-card">
+            <div class="card-content">
+              <p class="dashboard-insight-line" id="dashboard-insight-gastos">Cargando datos...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row dashboard-insights-row">
+        <div class="col s12 m6">
+          <div class="card insight-card">
+            <div class="card-content">
+              <p class="dashboard-insight-line" id="dashboard-insight-max-ingreso">Cargando datos...</p>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m6">
+          <div class="card insight-card">
+            <div class="card-content">
+              <p class="dashboard-insight-line" id="dashboard-insight-max-gasto">Cargando datos...</p>
             </div>
           </div>
         </div>
@@ -288,10 +332,9 @@
 
     <!-- Calendario -->
     <section id="section-calendario" class="section no-print hide">
-      <h5 class="section-title">Calendario</h5>
-
       <div class="card calendar-card">
         <div class="card-content">
+          <h5 class="section-title">Calendario</h5>
           <div class="calendar-layout row">
 
             <!-- Columna izquierda: mes + grilla -->
@@ -414,10 +457,9 @@
 
     <!-- Timeline de ingresos / gastos / balance -->
     <section id="section-timeline" class="section no-print hide">
-      <h5 class="section-title">Timeline</h5>
-
       <div class="card timeline-card">
         <div class="card-content">
+          <h5 class="section-title">Timeline</h5>
 
           <!-- Controles -->
           <div class="row timeline-controls">
@@ -468,7 +510,11 @@
     </section>
 
     <section id="section-herramientas" class="section">
-      <h5 class="section-title">Centro de herramientas</h5>
+      <div class="card">
+        <div class="card-content">
+          <h5 class="section-title">Centro de herramientas</h5>
+        </div>
+      </div>
 
       <div class="row">
         <!-- Columna izquierda: menú de herramientas -->
@@ -730,9 +776,9 @@
 
     <!-- Sección Categorías -->
     <section id="section-categorias" class="section no-print hide">
-      <h5 class="section-title">Categorías</h5>
       <div class="card">
         <div class="card-content">
+          <h5 class="section-title">Categorías</h5>
           <div class="row">
             <div class="col s12 m6">
               <span class="card-title">Ingresos</span>
@@ -780,9 +826,9 @@
 
     <!-- Filtros (inicia minimizado) -->
     <section id="section-filtros" class="section no-print hide">
-      <h5 class="section-title">Filtros</h5>
       <div class="card">
         <div class="card-content">
+          <h5 class="section-title">Filtros</h5>
           <div class="row">
 
             <!-- Controles de período se movieron al Panel de análisis -->
@@ -852,9 +898,9 @@
 
     <!-- Tabla de movimientos -->
     <section id="section-tabla" class="section">
-      <h5 class="section-title">Movimientos</h5>
       <div class="card">
         <div class="card-content table-wrapper">
+          <h5 class="section-title">Movimientos</h5>
           <table class="highlight responsive-table">
             <thead>
             <tr>
@@ -881,7 +927,7 @@
       <span class="footer-app-name">Mis Finanzas</span>
       <span class="footer-divider">·</span>
       <span class="footer-copy">© 2025</span>
-      <span class="footer-version">v2.11</span>
+      <span class="footer-version">v2.9.1</span>
     </div>
   </footer>
 
@@ -1232,10 +1278,81 @@
     </div>
   </div>
 
+  <!-- Modal Opciones de Impresión -->
+  <div id="modal-imprimir" class="modal">
+    <div class="modal-content">
+      <h5>Opciones de impresión</h5>
+      <p>Selecciona el período para el reporte:</p>
+
+      <div class="row">
+        <div class="col s12">
+          <p>
+            <label>
+              <input name="imp-periodo-modo" type="radio" value="filtros-actuales" checked />
+              <span>Usar filtros actuales</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="imp-periodo-modo" type="radio" value="periodo-rapido" />
+              <span>Período rápido</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="imp-periodo-modo" type="radio" value="rango-personalizado" />
+              <span>Rango personalizado</span>
+            </label>
+          </p>
+        </div>
+      </div>
+
+      <!-- Select de período rápido -->
+      <div class="row" id="imp-periodo-rapido-container" style="display: none;">
+        <div class="input-field col s12">
+          <select id="imp-periodo-rapido">
+            <option value="hoy">Hoy</option>
+            <option value="ultimos-7">Una semana (últimos 7 días)</option>
+            <option value="mes-actual" selected>Mes actual</option>
+            <option value="ultimos-30">Últimos 30 días</option>
+            <option value="ultimos-6-meses">Últimos 6 meses</option>
+            <option value="anio-actual">Año vigente</option>
+            <option value="todo">Todo el histórico</option>
+          </select>
+          <label for="imp-periodo-rapido">Selecciona el período</label>
+        </div>
+      </div>
+
+      <!-- Inputs de rango personalizado -->
+      <div class="row" id="imp-rango-personalizado-container" style="display: none;">
+        <div class="col s6">
+          <label for="imp-fecha-desde" class="date-label">Desde</label>
+          <input id="imp-fecha-desde" type="date" class="date-input">
+        </div>
+        <div class="col s6">
+          <label for="imp-fecha-hasta" class="date-label">Hasta</label>
+          <input id="imp-fecha-hasta" type="date" class="date-input">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close btn-flat">Cancelar</a>
+      <button id="btn-confirmar-imprimir" class="btn waves-effect waves-light">
+        <i class="material-icons left">print</i>Imprimir
+      </button>
+    </div>
+  </div>
+
   <!-- Input oculto para importar backup -->
   <input id="input-importar-backup"
          type="file"
          accept="application/json"
+         style="display: none;">
+
+  <!-- Input oculto para importar Excel -->
+  <input id="input-importar-excel"
+         type="file"
+         accept=".xlsx,.xls"
          style="display: none;">
 
   <!-- Materialize JS -->
@@ -1245,6 +1362,9 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- SheetJS (para Excel) -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
   <!-- JS modularizado -->
   <script src="js/core.js"></script>

@@ -42,6 +42,9 @@ function renderizarDashboard() {
   actualizarChartFormaPago(listaFiltrada);
   // Asegurar visibilidad según configuración actual
   setMostrarGraficoForma(!!(config && config.mostrarGraficoFormaPago));
+  
+  // Renderizar insights comparativos
+  renderizarInsightsMesActual();
 }
 
 // ====================
@@ -61,6 +64,14 @@ function parseFechaYYYYMMDD(fechaStr) {
   return dt;
 }
 
+function formatoYYYYMMDD(dateObj) {
+  if (!(dateObj instanceof Date)) return '';
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
 function formatearEtiquetaFecha(dateObj) {
   if (!(dateObj instanceof Date)) return '';
   const d = String(dateObj.getDate()).padStart(2, '0');
@@ -77,9 +88,153 @@ function diasEntreIncluyendo(desdeStr, hastaStr) {
   return dias > 0 ? dias : 0;
 }
 
-function calcularEstadisticasDashboard() {
-  const lista = obtenerMovimientosFiltrados ? obtenerMovimientosFiltrados() : [];
+// Helper: formatear monto con símbolo y separador de miles
+function formatearMontoResumen(monto) {
+  var simbolo = obtenerSimboloMoneda();
+  var montoRedondeado = Math.round(monto);
+  return simbolo + ' ' + montoRedondeado.toLocaleString('es-AR');
+}
 
+// Helper: calcular rango del mes anterior dado el rango del mes actual
+function calcularRangoMesAnteriorDesde(rangoMesActual) {
+  if (!rangoMesActual || !rangoMesActual.desde) return null;
+  var fechaActualDesde = parseFechaYYYYMMDD(rangoMesActual.desde);
+  if (!fechaActualDesde) return null;
+  
+  var anio = fechaActualDesde.getFullYear();
+  var mes = fechaActualDesde.getMonth(); // 0-11
+  
+  var mesAnterior = mes - 1;
+  var anioAnterior = anio;
+  if (mesAnterior < 0) {
+    mesAnterior = 11;
+    anioAnterior -= 1;
+  }
+  
+  var primerDiaMesAnterior = new Date(anioAnterior, mesAnterior, 1);
+  var ultimoDiaMesAnterior = new Date(anioAnterior, mesAnterior + 1, 0);
+  
+  return {
+    desde: formatoYYYYMMDD(primerDiaMesAnterior),
+    hasta: formatoYYYYMMDD(ultimoDiaMesAnterior)
+  };
+}
+
+// Renderizar insights comparativos (mes actual vs mes anterior)
+function renderizarInsightsMesActual() {
+  if (!dashboardInsightIngresosEl || !dashboardInsightGastosEl || 
+      !dashboardInsightMaxIngresoEl || !dashboardInsightMaxGastoEl) {
+    return;
+  }
+  
+  // Obtener rango del mes actual
+  var rangoActual = obtenerRangoMesActual();
+  if (!rangoActual || !rangoActual.desde || !rangoActual.hasta) {
+    dashboardInsightIngresosEl.textContent = 'No hay datos del mes actual.';
+    dashboardInsightGastosEl.textContent = '';
+    dashboardInsightMaxIngresoEl.textContent = '';
+    dashboardInsightMaxGastoEl.textContent = '';
+    return;
+  }
+  
+  // Filtrar movimientos del mes actual
+  var movMesActual = (movimientos || []).filter(function (m) {
+    return m.fecha >= rangoActual.desde && m.fecha <= rangoActual.hasta;
+  });
+  
+  // Calcular rango mes anterior
+  var rangoAnterior = calcularRangoMesAnteriorDesde(rangoActual);
+  var movMesAnterior = [];
+  if (rangoAnterior) {
+    movMesAnterior = (movimientos || []).filter(function (m) {
+      return m.fecha >= rangoAnterior.desde && m.fecha <= rangoAnterior.hasta;
+    });
+  }
+  
+  // Sumar ingresos y gastos de ambos meses
+  var ingresosActual = 0;
+  var gastosActual = 0;
+  movMesActual.forEach(function (m) {
+    if (m.tipo === 'INGRESO') ingresosActual += m.monto;
+    else if (m.tipo === 'GASTO') gastosActual += m.monto;
+  });
+  
+  var ingresosAnterior = 0;
+  var gastosAnterior = 0;
+  movMesAnterior.forEach(function (m) {
+    if (m.tipo === 'INGRESO') ingresosAnterior += m.monto;
+    else if (m.tipo === 'GASTO') gastosAnterior += m.monto;
+  });
+  
+  // Construir texto de variación para ingresos
+  var textoIngresos = 'Este mes tus ingresos: ';
+  if (movMesAnterior.length === 0) {
+    textoIngresos += formatearMontoResumen(ingresosActual) + ' (sin datos del mes anterior)';
+  } else {
+    var difIngresos = ingresosActual - ingresosAnterior;
+    var porcIngresos = ingresosAnterior !== 0 
+      ? ((difIngresos / ingresosAnterior) * 100).toFixed(1) 
+      : 0;
+    if (difIngresos > 0) {
+      textoIngresos += 'subieron ' + formatearMontoResumen(Math.abs(difIngresos)) 
+                     + ' (+' + porcIngresos + '%)';
+    } else if (difIngresos < 0) {
+      textoIngresos += 'bajaron ' + formatearMontoResumen(Math.abs(difIngresos)) 
+                     + ' (' + porcIngresos + '%)';
+    } else {
+      textoIngresos += 'se mantuvieron igual (0%)';
+    }
+  }
+  dashboardInsightIngresosEl.textContent = textoIngresos;
+  
+  // Construir texto de variación para gastos
+  var textoGastos = 'Este mes tus gastos: ';
+  if (movMesAnterior.length === 0) {
+    textoGastos += formatearMontoResumen(gastosActual) + ' (sin datos del mes anterior)';
+  } else {
+    var difGastos = gastosActual - gastosAnterior;
+    var porcGastos = gastosAnterior !== 0 
+      ? ((difGastos / gastosAnterior) * 100).toFixed(1) 
+      : 0;
+    if (difGastos > 0) {
+      textoGastos += 'subieron ' + formatearMontoResumen(Math.abs(difGastos)) 
+                   + ' (+' + porcGastos + '%)';
+    } else if (difGastos < 0) {
+      textoGastos += 'bajaron ' + formatearMontoResumen(Math.abs(difGastos)) 
+                   + ' (' + porcGastos + '%)';
+    } else {
+      textoGastos += 'se mantuvieron igual (0%)';
+    }
+  }
+  dashboardInsightGastosEl.textContent = textoGastos;
+  
+  // Mayor ingreso del mes actual
+  var mayoresIngresos = movMesActual.filter(function (m) { return m.tipo === 'INGRESO'; });
+  if (mayoresIngresos.length > 0) {
+    mayoresIngresos.sort(function (a, b) { return b.monto - a.monto; });
+    var maxIngreso = mayoresIngresos[0];
+    dashboardInsightMaxIngresoEl.textContent = 
+      'Este mes tu ingreso más grande fue: ' + formatearMontoResumen(maxIngreso.monto) 
+      + ' (' + maxIngreso.categoria + ')';
+  } else {
+    dashboardInsightMaxIngresoEl.textContent = 'Este mes tu ingreso más grande fue: sin ingresos';
+  }
+  
+  // Mayor gasto del mes actual
+  var mayoresGastos = movMesActual.filter(function (m) { return m.tipo === 'GASTO'; });
+  if (mayoresGastos.length > 0) {
+    mayoresGastos.sort(function (a, b) { return b.monto - a.monto; });
+    var maxGasto = mayoresGastos[0];
+    dashboardInsightMaxGastoEl.textContent = 
+      'Este mes tu gasto más grande fue: ' + formatearMontoResumen(maxGasto.monto) 
+      + ' (' + maxGasto.categoria + ')';
+  } else {
+    dashboardInsightMaxGastoEl.textContent = 'Este mes tu gasto más grande fue: sin gastos';
+  }
+}
+
+// Calcula estadísticas sobre una lista de movimientos y un rango opcional
+function calcularEstadisticasSobreLista(lista, rangoOpcional) {
   let totalIngresos = 0;
   let totalGastos = 0;
   let cantMovIngresos = 0;
@@ -97,9 +252,11 @@ function calcularEstadisticasDashboard() {
     }
   });
 
-  // Días en período para promedio: si hay fechaDesde/hasta usar el rango, sino días distintos presentes
+  // Días en período para promedio
   let diasPeriodo = 0;
-  if (typeof filtros === 'object' && filtros && filtros.fechaDesde && filtros.fechaHasta) {
+  if (rangoOpcional && rangoOpcional.desde && rangoOpcional.hasta) {
+    diasPeriodo = diasEntreIncluyendo(rangoOpcional.desde, rangoOpcional.hasta);
+  } else if (typeof filtros === 'object' && filtros && filtros.fechaDesde && filtros.fechaHasta) {
     diasPeriodo = diasEntreIncluyendo(filtros.fechaDesde, filtros.fechaHasta);
   }
   if (!diasPeriodo) {
@@ -118,6 +275,11 @@ function calcularEstadisticasDashboard() {
     diasConGasto: diasConGastoSet.size,
     gastoPromedioDiario: gastoPromedioDiario
   };
+}
+
+function calcularEstadisticasDashboard() {
+  const lista = obtenerMovimientosFiltrados ? obtenerMovimientosFiltrados() : [];
+  return calcularEstadisticasSobreLista(lista, null);
 }
 
 function construirSerieBalancePorFecha(listaMovimientos) {

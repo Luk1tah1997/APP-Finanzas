@@ -1,3 +1,86 @@
+/* Insights comparativos */
+.dashboard-insights-row {
+  margin-bottom: 0.3rem;
+}
+.dashboard-insights-row .insight-card {
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin: 0;
+}
+.dashboard-insights-row .insight-card .card-content {
+  padding: 10px 12px;
+}
+.dashboard-insight-line {
+  font-size: 0.85rem;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+/* Optimización de altura del dashboard */
+#section-dashboard .resumen-card {
+  margin-bottom: 0.5rem;
+}
+#section-dashboard .resumen-card .card-content {
+  padding: 12px 14px;
+}
+#section-dashboard .resumen-card .card-title {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+#section-dashboard .resumen-card .card-title i {
+  font-size: 1.1rem;
+}
+#section-dashboard .resumen-card p {
+  font-size: 1.3rem;
+  margin: 0;
+}
+#section-dashboard .stats-card {
+  margin-bottom: 0.5rem;
+}
+#section-dashboard .stats-card .card-content {
+  padding: 10px 14px;
+}
+
+/* Reducir spacing en móvil */
+@media only screen and (max-width: 600px) {
+  .dashboard-insights-row {
+    margin-bottom: 0.2rem;
+  }
+  .dashboard-insights-row .insight-card .card-content {
+    padding: 8px 10px;
+  }
+  .dashboard-insight-line {
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+  #section-dashboard .resumen-card {
+    margin-bottom: 0.4rem;
+  }
+  #section-dashboard .resumen-card .card-content {
+    padding: 10px 12px;
+  }
+  #section-dashboard .resumen-card .card-title {
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+  }
+  #section-dashboard .resumen-card p {
+    font-size: 1.2rem;
+  }
+  #section-dashboard .stats-card {
+    margin-bottom: 0.4rem;
+  }
+  #section-dashboard .stats-card .card-content {
+    padding: 8px 12px;
+  }
+  .dashboard-metric-label {
+    font-size: 0.75rem;
+  }
+  .dashboard-metric-value {
+    font-size: 0.9rem;
+  }
+}
+
 /* Centro de herramientas */
 .herramientas-menu .collection {
   margin: 0;
@@ -121,6 +204,15 @@ body {
 main {
   padding-top: 4.5rem;   /* deja espacio para la navbar fija */
   padding-bottom: 2.5rem;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media only screen and (max-width: 600px) {
+  main {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
 /* Navbar fija y layout */
@@ -199,15 +291,34 @@ body.dark-mode .logo-badge {
    ========================================================= */
 
 .section {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0.5rem !important;
 }
 
 .section-title {
-  margin-bottom: 0.75rem;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--color-text);
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* Optimización de spacing en dashboard */
+#section-dashboard > .row {
+  margin-bottom: 0.5rem;
+}
+
+@media only screen and (max-width: 600px) {
+  .section-title {
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+  }
+  #section-dashboard > .row {
+    margin-bottom: 0.3rem;
+  }
 }
 
 /* =========================================================
@@ -300,7 +411,13 @@ nav .sidenav-trigger {
 }
 
 .card .card-content {
-  padding: 16px 18px;
+  padding: 16px 12px;
+}
+
+@media only screen and (max-width: 600px) {
+  .card .card-content {
+    padding: 12px 8px;
+  }
 }
 
 .card .card-title {
@@ -486,7 +603,13 @@ nav .sidenav-trigger {
    ========================================================= */
 
 .period-controls {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+}
+
+@media only screen and (max-width: 600px) {
+  .period-controls {
+    margin-bottom: 0.8rem;
+  }
 }
 
 .date-label {
@@ -1612,6 +1735,12 @@ html { -webkit-text-size-adjust: 100%; }
 .container {
   padding-left: 4px;
   padding-right: 4px;
+}
+
+/* Columnas sin márgenes laterales para simetría perfecta */
+.col.s12 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 @media only screen and (max-width: 600px) {

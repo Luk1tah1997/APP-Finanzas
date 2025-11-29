@@ -109,9 +109,18 @@ function cacheDomElements() {
   dashboardCantMovTotalEl =
     document.getElementById('dashboard-cant-mov-total');
 
+  // Insights comparativos
+  dashboardInsightIngresosEl = document.getElementById('dashboard-insight-ingresos');
+  dashboardInsightGastosEl = document.getElementById('dashboard-insight-gastos');
+  dashboardInsightMaxIngresoEl = document.getElementById('dashboard-insight-max-ingreso');
+  dashboardInsightMaxGastoEl = document.getElementById('dashboard-insight-max-gasto');
+
   fabNuevoMov = document.getElementById('btn-fab-nuevo-mov');
 
   inputImportarBackup = document.getElementById('input-importar-backup');
+  inputImportarExcel = document.getElementById('input-importar-excel');
+  navExportarPlantillaExcel = document.getElementById('nav-exportar-plantilla-excel');
+  navImportarExcel = document.getElementById('nav-importar-excel');
 
   selectFiltroPeriodo = document.getElementById('filtro-periodo');
   inputFiltroFechaDesde = document.getElementById('filtro-fecha-desde');
@@ -266,6 +275,16 @@ function cacheDomElements() {
   modalHistorialHerramientas = document.getElementById('modal-historial-herramientas');
   btnVerHistorialHerramientas = document.getElementById('btn-ver-historial-herramientas');
   btnLimpiarHistorial = document.getElementById('btn-limpiar-historial');
+
+  // Modal de impresión
+  modalImprimirEl = document.getElementById('modal-imprimir');
+  btnConfirmarImprimir = document.getElementById('btn-confirmar-imprimir');
+  radiosImpPeriodoModo = document.querySelectorAll('input[name="imp-periodo-modo"]');
+  selectImpPeriodoRapido = document.getElementById('imp-periodo-rapido');
+  inputImpFechaDesde = document.getElementById('imp-fecha-desde');
+  inputImpFechaHasta = document.getElementById('imp-fecha-hasta');
+  impPeriodoRapidoContainer = document.getElementById('imp-periodo-rapido-container');
+  impRangoPersonalizadoContainer = document.getElementById('imp-rango-personalizado-container');
 
   // Calendario símbolos
   calendarSimboloIngresosEl =
@@ -599,10 +618,97 @@ function configurarEventos() {
       cerrarSidenav();
     });
   }
+  if (navExportarPlantillaExcel) {
+    navExportarPlantillaExcel.addEventListener('click', function () {
+      exportarPlantillaExcel();
+      cerrarSidenav();
+    });
+  }
+  if (navImportarExcel) {
+    navImportarExcel.addEventListener('click', function () {
+      if (inputImportarExcel) {
+        inputImportarExcel.value = '';
+        inputImportarExcel.click();
+      }
+      cerrarSidenav();
+    });
+  }
+  if (inputImportarExcel) {
+    inputImportarExcel.addEventListener('change', function (e) {
+      const archivo = e.target.files && e.target.files[0];
+      importarMovimientosDesdeExcel(archivo);
+    });
+  }
   if (navImprimir) {
     navImprimir.addEventListener('click', function () {
-      window.print();
+      if (modalImprimirInstance) {
+        // Resetear el modal a valores por defecto
+        if (radiosImpPeriodoModo && radiosImpPeriodoModo.length) {
+          radiosImpPeriodoModo[0].checked = true;
+        }
+        if (impPeriodoRapidoContainer) impPeriodoRapidoContainer.style.display = 'none';
+        if (impRangoPersonalizadoContainer) impRangoPersonalizadoContainer.style.display = 'none';
+        modalImprimirInstance.open();
+      }
       cerrarSidenav();
+    });
+  }
+
+  // Eventos del modal de impresión
+  if (radiosImpPeriodoModo && radiosImpPeriodoModo.length) {
+    radiosImpPeriodoModo.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        const modo = radio.value;
+        if (impPeriodoRapidoContainer && impRangoPersonalizadoContainer) {
+          if (modo === 'periodo-rapido') {
+            impPeriodoRapidoContainer.style.display = '';
+            impRangoPersonalizadoContainer.style.display = 'none';
+          } else if (modo === 'rango-personalizado') {
+            impPeriodoRapidoContainer.style.display = 'none';
+            impRangoPersonalizadoContainer.style.display = '';
+          } else {
+            impPeriodoRapidoContainer.style.display = 'none';
+            impRangoPersonalizadoContainer.style.display = 'none';
+          }
+        }
+      });
+    });
+  }
+
+  if (btnConfirmarImprimir) {
+    btnConfirmarImprimir.addEventListener('click', function () {
+      // Leer el modo seleccionado
+      let modoSeleccionado = 'filtros-actuales';
+      if (radiosImpPeriodoModo && radiosImpPeriodoModo.length) {
+        for (let i = 0; i < radiosImpPeriodoModo.length; i++) {
+          if (radiosImpPeriodoModo[i].checked) {
+            modoSeleccionado = radiosImpPeriodoModo[i].value;
+            break;
+          }
+        }
+      }
+
+      const opciones = { modo: modoSeleccionado };
+
+      if (modoSeleccionado === 'periodo-rapido') {
+        opciones.periodoCodigo = selectImpPeriodoRapido ? selectImpPeriodoRapido.value : 'mes-actual';
+      } else if (modoSeleccionado === 'rango-personalizado') {
+        opciones.fechaDesde = inputImpFechaDesde ? inputImpFechaDesde.value : '';
+        opciones.fechaHasta = inputImpFechaHasta ? inputImpFechaHasta.value : '';
+        
+        if (!opciones.fechaDesde || !opciones.fechaHasta) {
+          mostrarMensaje('Por favor ingresa ambas fechas para el rango personalizado.');
+          return;
+        }
+      }
+
+      // Cerrar el modal
+      if (modalImprimirInstance) {
+        modalImprimirInstance.close();
+      }
+
+      // Llamar a la función de impresión
+      imprimirReporteMovimientos(opciones);
     });
   }
 
@@ -755,6 +861,8 @@ function inicializarMaterialize() {
               modalResultadoGrupalInstance = instance;
             } else if (elem && elem.id === 'modal-historial-herramientas') {
               modalHistorialHerramientasInstance = instance;
+            } else if (elem && elem.id === 'modal-imprimir') {
+              modalImprimirInstance = instance;
             }
           });
         }

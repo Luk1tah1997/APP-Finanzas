@@ -39,10 +39,13 @@ function manejarCambioFiltroPeriodo() {
 function aplicarPeriodoEnFechas(periodo) {
   let rango = null;
 
-  if (periodo === 'mes-actual') rango = obtenerRangoMesActual();
+  if (periodo === 'hoy') rango = obtenerRangoHoy();
+  else if (periodo === 'ultimos-7') rango = obtenerRangoUltimos7Dias();
+  else if (periodo === 'mes-actual') rango = obtenerRangoMesActual();
+  else if (periodo === 'ultimos-30') rango = obtenerRangoUltimos30Dias();
+  else if (periodo === 'ultimos-6-meses') rango = obtenerRangoUltimos6Meses();
   else if (periodo === 'semana-actual') rango = obtenerRangoSemanaActual();
   else if (periodo === 'anio-actual') rango = obtenerRangoAnioActual();
-  else if (periodo === 'ultimos-30') rango = obtenerRangoUltimos30Dias();
   else if (periodo === 'todo') rango = null;
 
   filtros.periodo = periodo;
@@ -306,6 +309,50 @@ function obtenerRangoUltimos30Dias() {
     desde: convertirFechaADateString(desde),
     hasta: convertirFechaADateString(hasta)
   };
+}
+
+function obtenerRangoHoy() {
+  const hoy = new Date();
+  return {
+    desde: convertirFechaADateString(hoy),
+    hasta: convertirFechaADateString(hoy)
+  };
+}
+
+function obtenerRangoUltimos7Dias() {
+  const hoy = new Date();
+  const hasta = new Date(hoy);
+  const desde = new Date(hoy);
+  desde.setDate(hoy.getDate() - 6);
+
+  return {
+    desde: convertirFechaADateString(desde),
+    hasta: convertirFechaADateString(hasta)
+  };
+}
+
+function obtenerRangoUltimos6Meses() {
+  const hoy = new Date();
+  const hasta = new Date(hoy);
+  const desde = new Date(hoy);
+  desde.setMonth(hoy.getMonth() - 6);
+
+  return {
+    desde: convertirFechaADateString(desde),
+    hasta: convertirFechaADateString(hasta)
+  };
+}
+
+function obtenerRangoPorCodigo(periodoCodigo) {
+  if (periodoCodigo === 'hoy') return obtenerRangoHoy();
+  if (periodoCodigo === 'ultimos-7') return obtenerRangoUltimos7Dias();
+  if (periodoCodigo === 'mes-actual') return obtenerRangoMesActual();
+  if (periodoCodigo === 'ultimos-30') return obtenerRangoUltimos30Dias();
+  if (periodoCodigo === 'ultimos-6-meses') return obtenerRangoUltimos6Meses();
+  if (periodoCodigo === 'semana-actual') return obtenerRangoSemanaActual();
+  if (periodoCodigo === 'anio-actual') return obtenerRangoAnioActual();
+  if (periodoCodigo === 'todo') return null;
+  return obtenerRangoMesActual();
 }
 
 function convertirFechaADateString(fecha) {

@@ -130,6 +130,9 @@ let totalBalanceEl;
 let fabNuevoMov;
 
 let inputImportarBackup;
+let inputImportarExcel;
+let navExportarPlantillaExcel;
+let navImportarExcel;
 
 let selectFiltroPeriodo;
 let inputFiltroFechaDesde;
@@ -168,6 +171,12 @@ let dashboardDiasConGastoEl;
 let dashboardCantMovIngresosEl;
 let dashboardCantMovGastosEl;
 let dashboardCantMovTotalEl;
+
+// Insights comparativos
+let dashboardInsightIngresosEl;
+let dashboardInsightGastosEl;
+let dashboardInsightMaxIngresoEl;
+let dashboardInsightMaxGastoEl;
 
 // Modal eliminar símbolo
 let modalEliminarMonedaEl;
@@ -300,7 +309,18 @@ let modalConfigInstance;
 let modalResultadoPresupuestoInstance;
 let modalResultadoGrupalInstance;
 let modalHistorialHerramientasInstance;
+let modalImprimirInstance;
 let sidenavInstance;
+
+// Modal de impresión
+let modalImprimirEl;
+let btnConfirmarImprimir;
+let radiosImpPeriodoModo;
+let selectImpPeriodoRapido;
+let inputImpFechaDesde;
+let inputImpFechaHasta;
+let impPeriodoRapidoContainer;
+let impRangoPersonalizadoContainer;
 
 //#endregion MÓDULO: Estado global
 

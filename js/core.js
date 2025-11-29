@@ -110,6 +110,40 @@ let calendarCurrentDate = new Date(); // referencia de mes/año actual
 let calendarSelectedDate = null;      // 'YYYY-MM-DD' seleccionada
 
 // ====================
+//   Helpers de fecha (compartidos)
+// ====================
+
+/**
+ * Parsea una fecha en formato YYYY-MM-DD a objeto Date
+ * @param {string} fechaStr - Fecha en formato 'YYYY-MM-DD'
+ * @returns {Date|null} - Objeto Date o null si es inválido
+ */
+function parseFechaYYYYMMDD(fechaStr) {
+  if (!fechaStr || typeof fechaStr !== 'string') return null;
+  const parts = fechaStr.split('-');
+  if (parts.length !== 3) return null;
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return null;
+  const dt = new Date(y, m, d);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+/**
+ * Formatea una fecha YYYY-MM-DD al formato argentino DD/MM/YYYY
+ * @param {string} fechaStr - Fecha en formato 'YYYY-MM-DD'
+ * @returns {string} - Fecha en formato 'DD/MM/YYYY' o string vacío si es inválido
+ */
+function formatearFechaArgentina(fechaStr) {
+  if (!fechaStr || typeof fechaStr !== 'string') return '';
+  const partes = fechaStr.split('-');
+  if (partes.length !== 3) return fechaStr;
+  return partes[2] + '/' + partes[1] + '/' + partes[0];
+}
+
+// ====================
 //   Referencias DOM
 // ====================
 
@@ -214,10 +248,6 @@ let formCategoria;
 let selectCategoriaTipo;
 let inputCategoriaNombre;
 let navCategorias;
-
-// Navegación subsecciones herramientas
-let navHerramientasPresupuesto;
-let navHerramientasGrupal;
 
 // Calendario DOM
 let calendarGridEl;

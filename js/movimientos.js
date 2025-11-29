@@ -17,7 +17,7 @@ function renderizarMovimientos() {
     const tr = document.createElement('tr');
 
     const tdFecha = document.createElement('td');
-    tdFecha.textContent = mov.fecha || '';
+    tdFecha.textContent = formatearFechaArgentina(mov.fecha);
     tr.appendChild(tdFecha);
 
     const tdTipo = document.createElement('td');

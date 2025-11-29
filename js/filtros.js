@@ -143,7 +143,7 @@ function obtenerMovimientosFiltrados() {
 
   const f = filtros || {};
 
-  return movimientos.filter(function (mov) {
+  const filtrados = movimientos.filter(function (mov) {
     if (f.fechaDesde && mov.fecha < f.fechaDesde) return false;
     if (f.fechaHasta && mov.fecha > f.fechaHasta) return false;
     if (f.tipo && f.tipo !== 'TODOS' && mov.tipo !== f.tipo) return false;
@@ -155,6 +155,15 @@ function obtenerMovimientosFiltrados() {
     if (typeof f.montoMax === 'number' && mov.monto > f.montoMax) return false;
     return true;
   });
+
+  // Ordenar por fecha (más reciente primero)
+  filtrados.sort(function (a, b) {
+    if (a.fecha > b.fecha) return -1;
+    if (a.fecha < b.fecha) return 1;
+    return 0;
+  });
+
+  return filtrados;
 }
 
 // ====================

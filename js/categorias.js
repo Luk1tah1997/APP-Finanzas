@@ -358,17 +358,6 @@ function actualizarResumen() {
 // ====================
 
 // Convierte 'YYYY-MM-DD' a Date
-function parseFechaYYYYMMDD(str) {
-  if (!str || typeof str !== 'string') return null;
-  const partes = str.split('-');
-  if (partes.length !== 3) return null;
-  const year = parseInt(partes[0], 10);
-  const month = parseInt(partes[1], 10);
-  const day = parseInt(partes[2], 10);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
-}
-
 // Diferencia de días (inclusive)
 function diferenciaDiasInclusive(fechaDesde, fechaHasta) {
   if (!(fechaDesde instanceof Date) || !(fechaHasta instanceof Date)) {

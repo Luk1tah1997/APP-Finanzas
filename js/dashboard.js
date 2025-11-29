@@ -52,18 +52,6 @@ function renderizarDashboard() {
 // ====================
 
 // Helpers de fecha locales (evitan duplicar dependencias si no existen en core)
-function parseFechaYYYYMMDD(fechaStr) {
-  if (!fechaStr || typeof fechaStr !== 'string') return null;
-  const parts = fechaStr.split('-');
-  if (parts.length !== 3) return null;
-  const y = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10) - 1;
-  const d = parseInt(parts[2], 10);
-  const dt = new Date(y, m, d);
-  if (Number.isNaN(dt.getTime())) return null;
-  return dt;
-}
-
 function formatoYYYYMMDD(dateObj) {
   if (!(dateObj instanceof Date)) return '';
   const y = dateObj.getFullYear();

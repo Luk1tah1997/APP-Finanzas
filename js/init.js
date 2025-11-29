@@ -189,10 +189,6 @@ function cacheDomElements() {
   inputCategoriaNombre = document.getElementById('categoria-nombre');
   navCategorias = document.getElementById('nav-categorias');
 
-  // Navegación subsecciones herramientas
-  navHerramientasPresupuesto = document.getElementById('nav-herramientas-presupuesto');
-  navHerramientasGrupal = document.getElementById('nav-herramientas-grupal');
-
   // Calendario
   calendarGridEl = document.getElementById('calendar-grid');
   calendarMonthLabelEl = document.getElementById('calendar-current-month-label');
@@ -272,7 +268,6 @@ function cacheDomElements() {
   modalResultadoPresupuesto = document.getElementById('modal-resultado-presupuesto');
   modalResultadoGrupal = document.getElementById('modal-resultado-grupal');
   modalHistorialHerramientas = document.getElementById('modal-historial-herramientas');
-  btnVerHistorialHerramientas = document.getElementById('btn-ver-historial-herramientas');
   btnLimpiarHistorial = document.getElementById('btn-limpiar-historial');
 
   // Modal de impresión
@@ -384,31 +379,6 @@ function configurarEventos() {
       const section = document.getElementById('section-categorias');
       if (section && section.scrollIntoView) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      cerrarSidenav();
-    });
-  }
-
-  // Navegación subsecciones herramientas
-  if (navHerramientasPresupuesto) {
-    navHerramientasPresupuesto.addEventListener('click', function (e) {
-      e.preventDefault();
-      setHerramientasVisible(true);
-      const card = document.getElementById('herramienta-presupuesto');
-      if (card && card.scrollIntoView) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      cerrarSidenav();
-    });
-  }
-
-  if (navHerramientasGrupal) {
-    navHerramientasGrupal.addEventListener('click', function (e) {
-      e.preventDefault();
-      setHerramientasVisible(true);
-      const card = document.getElementById('herramienta-grupal');
-      if (card && card.scrollIntoView) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       cerrarSidenav();
     });
